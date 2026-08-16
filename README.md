@@ -1,118 +1,120 @@
-# 🗓️ LeaveDesk
+# LeaveDesk
 
-**A single-file, role-based HR leave management web app.**
+**A single-file HR leave management web app.** No build step, no backend, no dependencies — just open one HTML file and manage your team's time off.
 
-LeaveDesk runs entirely in the browser as one HTML file. It ships with a full sign-in layer (employees, managers, HR admins), sex-aware leave types (maternity, paternity, sick, annual…), an approval workflow, an interactive dashboard, and a portable JSON backup model — so the whole workspace moves with you between machines.
+[![License: MIT](https://img.shields.io/badge/License-MIT-3f6de0)](LICENSE)
+[![Runs anywhere](https://img.shields.io/badge/Runs-Anywhere-0f8a8a)](#)
+[![Version](https://img.shields.io/badge/version-1.0.0-182233)](#)
 
-![License: MIT](https://img.shields.io/badge/License-MIT-3f6de0)
-![Status: Ready](https://img.shields.io/badge/Status-Ready-22a05d)
-![Runs: Anywhere](https://img.shields.io/badge/Runs-Anywhere-182233)
+---
+
+## Overview
+
+LeaveDesk is a complete leave-management system that runs entirely in the browser. All data — employees, requests, leave types, policies, and even the audit trail — lives in `localStorage` and can be exported to / imported from a portable `.json` file.
+
+It ships with a demo workspace and three sign-in roles, so you can explore the full workflow out of the box: **employees** request leave, **managers** approve their team's requests, and **HR** administers everything.
 
 ---
 
 ## ✨ Features
 
-### 🔐 Role-based access
-Three sign-in roles, each with their own nav and permissions:
-
+### 🔐 Roles & Sign-in
 | Role | Capabilities |
-|------|-------------|
-| **Employee** | Request leave, view own balances, cancel pending requests, browse team calendar |
-| **Manager** | Everything above + approve/reject requests from their direct reports |
-| **HR admin** | Full system: dashboard, all requests, team CRUD, leave types, import/export, sign-in accounts |
+|---|---|
+| **Employee** | Request leave, view own balances, cancel pending requests, browse the team calendar |
+| **Manager** | Everything above **+** approve/reject requests from direct reports, view team balances & reports |
+| **HR admin** | Full administration: team CRUD, leave types, policies, holidays, reports, audit log, import/export |
 
-### 🧬 Sex-aware leave types
-Leave types can be gated by the sex recorded on the employee profile. The app ships with:
+### 🗓️ Leave Management
+- **Sex-restricted leave types** — Maternity (female-only) and Paternity (male-only), plus Annual, Sick, Personal, and Unpaid.
+- **Half-days & hourly leave** — request full days, half-days (0.5), or custom hours per day.
+- **Public holidays** — declare company holidays; they're skipped in day calculations and shown on the calendar.
+- **Accrual & carryover** — per-type rules: annual vs. monthly accrual, join-date pro-ration, and capped carryover into the next year.
+- **Attachments** — attach supporting documents (e.g. doctor's notes, ≤2 MB) to any request.
+- **Approval delegation** — when a manager is on leave, their delegate can approve requests on their behalf.
 
-- **Maternity Leave** (90 days, women only)
-- **Paternity Leave** (14 days, men only)
-- Plus Annual, Sick, Personal and Unpaid — all fully editable
+### 📊 Dashboard & Reports
+- **Interactive dashboard** — clickable stat tiles (Pending approvals, On leave today, Days booked, Active team) that drill into detail views.
+- **Five report types** — Overview, Balances, Trends, Departments, and Absence Register.
+- **Export to PDF** — clean, print-optimised documents with headings and data tables (not screenshots).
+- **Export to CSV** — every report also downloads as spreadsheet-ready CSV.
 
-When an employee's profile doesn't match a type's restriction, that type is disabled in the request form with a clear hint, and mismatches are flagged in approval queues.
+### 🧾 Governance
+- **Full audit log** — every request decision, employee edit, policy change, and password reset is recorded with actor, timestamp, and details.
+- **Light & dark themes** — respects your OS preference, switchable anytime, persisted per browser.
 
-### 📊 Interactive dashboard (HR)
-Four stat tiles that do something useful when clicked:
-
-- **Pending approvals** → jumps to the Requests tab, filtered to pending
-- **On leave today** → opens a modal listing everyone out today (drill-down to profiles)
-- **Days booked · FY** → analytics modal: totals by leave type (with share bars) and by employee
-- **Active team** → jumps to the Team tab
-
-### 👤 People profiles
-Click any name anywhere (dashboard queue, team table, request row, calendar chip) to open a wide profile modal showing:
-- Role, department, manager, sex, join date
-- FY stats (approved, pending, next leave)
-- Per-type balance cards with animated usage bars
-- Full history split into **currently on leave / upcoming / past**
-
-### 🌓 Light & dark themes
-A sun/moon toggle in the header. Preference is persisted, defaults to your OS setting, and every generated element (pills, calendar chips, balance bars, badges) adapts automatically.
-
-### 💾 Portable JSON workspace
-Everything — people, requests, leave types, sign-in accounts, passwords — lives in one `.json` file.
-- **Export** downloads a timestamped backup
-- **Import** via button or drag-and-drop restores the entire workspace
-- Autosaves to `localStorage` on every change
-
-### ⚙️ Everything else
-- Modal back-stack (modals-in-modals step back cleanly)
-- Animated count-up tiles, animated balance bars, reveal-on-load panels
-- Calendar with per-day pills, weekend shading, monthly totals by type
-- Per-person allowance overrides
-- Passwords stored salted + hashed (never plaintext)
-- Last HR admin can't be demoted/deleted (no lockouts)
+### 💾 Data & Portability
+- **Autosave** — every change is saved to `localStorage` automatically.
+- **JSON export/import** — back up or move your entire workspace via a single `.json` file (drag-and-drop supported).
 
 ---
 
-## 🚀 Getting started
+## 📸 Screenshots
 
-There is no build step. Just:
+<!-- Replace these with your own screenshots once captured -->
+<!-- ![Dashboard](docs/screenshots/dashboard.png) -->
+<!-- ![Reports](docs/screenshots/reports.png) -->
 
-1. Save [`leavedesk.html`](leavedesk.html)
-2. Open it in any modern browser
+> _Screenshots coming soon. Run the app and capture the Dashboard, Reports, and Calendar views._
 
-On first launch the app seeds a sample workspace with a demo team. Sign in with any of the accounts below (password is the same for all of them).
+---
 
-### 🧪 Default demo accounts
+## 🚀 Quick Start
+
+1. **Download or clone** the repository.
+2. **Open `leavedesk.html`** in any modern browser (double-click it, or drag it into a browser window).
+3. **Sign in** with one of the demo accounts below.
+
+That's it — no server, no install, no build.
+
+### Demo Accounts
+
+All demo accounts use the password **`demo123`**.
 
 | Username | Password | Role |
-|----------|----------|------|
+|---|---|---|
 | `chloe` | `demo123` | HR admin |
 | `bruno` | `demo123` | Manager |
 | `amara` | `demo123` | Employee |
-| `farah` | `demo123` | Employee |
 | `dmitri` | `demo123` | Employee |
+| `farah` | `demo123` | Employee |
 | `jonah` | `demo123` | Employee |
 
-To start from a blank slate, use **Settings & Data → Start fresh** — the setup screen will prompt you to create the first HR admin.
+> **Locked out?** Click **"Reset all passwords to demo123"** on the sign-in screen, or use **Settings → Danger zone → Reset passwords** when signed in.
 
 ---
 
-## 📦 Data model
+## 🧭 Usage by Role
 
-Everything is stored under one key (`leavedesk.v1`) in `localStorage` and mirrored into the exported `.json`:
+### As an Employee
+1. Go to **My Leave** and click **Request leave**.
+2. Pick a leave type, date range, and duration (full / half / hours).
+3. Optionally add a reason and an attachment, then submit.
+4. Track the request status and your remaining balance on the same screen.
+
+### As a Manager
+1. Open **Approvals** to see pending requests from your direct reports.
+2. Review each request's projected balance, then **Approve** or **Reject**.
+3. If you'll be away, HR can assign a **delegate approver** to your reports.
+
+### As HR
+1. **Team** — add/edit people, set roles, managers, delegates, and sign-in credentials.
+2. **Requests** — review every request across the company.
+3. **Reports** — generate and export PDF/CSV reports.
+4. **Settings** — manage leave types, policies, holidays, and the audit log.
+5. **Data & backup** — export/import the workspace as JSON.
+
+---
+
+## 🗂️ Data & Backup
+
+All data is stored under a single `localStorage` key and mirrored to the `.json` you export. The schema is versioned:
 
 ```jsonc
 {
-  "meta": { "app": "LeaveDesk", "version": 3, "savedAt": "ISO-8601" },
-  "settings": {
-    "companyName": "string",
-    "year": 2026,
-    "weekStartsMonday": true,
-    "leaveTypes": [
-      { "id": "annual", "name": "Annual Leave", "color": "#hex",
-        "allowance": 20, "countsWeekends": false, "sexRestriction": null }
-    ]
-  },
-  "employees": [
-    { "id": "uuid", "name": "...", "sex": "female|male|''",
-      "role": "employee|manager|hr", "managerId": "uuid|null",
-      "username": "string", "pwHash": "hex", "pwSalt": "string",
-      "overrides": { "annual": 23 } }
-  ],
-  "requests": [
-    { "id": "uuid", "employeeId": "uuid", "typeId": "annual",
-      "from": "YYYY-MM-DD", "to": "YYYY-MM-DD", "days": 5,
-      "status": "pending|approved|rejected", "reason": "..." }
-  ]
+  "meta":      { "app": "LeaveDesk", "version": 5, "savedAt": "…" },
+  "settings":  { "companyName": "…", "year": 2025, "holidays": […], "leaveTypes": [ … ] },
+  "employees": [ { "id", "name", "sex", "role", "managerId", "delegateManagerId", "username", … } ],
+  "requests":  [ { "id", "employeeId", "typeId", "from", "to", "days", "durationType", "attachments", "status", … } ],
+  "audit":     [ { "id", "at", "actorName", "action", "after", … } ]
 }
