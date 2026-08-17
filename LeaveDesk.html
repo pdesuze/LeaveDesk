@@ -1,0 +1,2255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeaveDesk — HR Leave Manager</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23182233'/><circle cx='50' cy='54' r='20' fill='%233f6de0'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+(function(){try{
+  var t=localStorage.getItem('leavedesk.theme');
+  if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+  document.documentElement.dataset.theme=t;
+}catch(e){document.documentElement.dataset.theme='light'}})();
+</script>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#eef1f5; --surface:#ffffff; --surface-2:#f4f6f9;
+  --line:#dbe1e9; --line-strong:#c6cfda;
+  --text:#1a2432; --text-soft:#5c6b80;
+  --header-bg:#182233; --header-accent:#2e5cd6; --hero-bg:#202c46;
+  --accent-btn:#2e5cd6; --accent-text:#2e5cd6; --accent-soft:rgba(46,92,214,.15);
+  --ink-btn:#1d2b41; --indicator:#7ea2f2;
+  --track:#e4e9f0; --field-bg:#ffffff;
+  --ok-bg:#e2f3e9; --ok-bd:#b3dfc4; --ok-tx:#136a3b; --ok-solid:#22a05d;
+  --pend-bg:#fbf1d9; --pend-bd:#ecd49b; --pend-tx:#7d5600;
+  --danger:#c8372d; --danger-bg:#fce9e6; --danger-bd:#f2bcb2; --danger-tx:#9e2b21;
+  --warn-bg:#fff4d6; --warn-bd:#f4d98a; --warn-tx:#7d5600; --hol:#d9930d;
+  --glow-a:rgba(46,92,214,.10); --glow-b:rgba(17,122,138,.08); --dot:rgba(26,36,50,.06);
+  --shadow:0 14px 30px -20px rgba(24,34,51,.4); --shadow-sm:0 2px 8px -2px rgba(24,34,51,.22);
+  --toast-bg:#182233;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --disp:'Bricolage Grotesque','IBM Plex Sans',sans-serif;
+}
+[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0c1118; --surface:#141b26; --surface-2:#1a2330;
+  --line:#242f3f; --line-strong:#31405a;
+  --text:#e6ebf3; --text-soft:#93a1b5;
+  --header-bg:#0f1520; --header-accent:#3d67c4; --hero-bg:#17202f;
+  --accent-btn:#3f6de0; --accent-text:#8aa8f0; --accent-soft:rgba(91,133,232,.2);
+  --ink-btn:#2a3a52; --indicator:#7ea2f2;
+  --track:#232e3f; --field-bg:#0f1621;
+  --ok-bg:rgba(63,191,124,.13); --ok-bd:rgba(63,191,124,.38); --ok-tx:#6cd89e; --ok-solid:#2fae6e;
+  --pend-bg:rgba(217,147,13,.14); --pend-bd:rgba(217,147,13,.42); --pend-tx:#e5b45c;
+  --danger:#e05d50; --danger-bg:rgba(224,93,80,.13); --danger-bd:rgba(224,93,80,.42); --danger-tx:#ef8d82;
+  --warn-bg:rgba(217,147,13,.14); --warn-bd:rgba(217,147,13,.42); --warn-tx:#e5b45c;
+  --glow-a:rgba(72,110,220,.13); --glow-b:rgba(17,122,138,.10); --dot:rgba(255,255,255,.05);
+  --shadow:0 16px 34px -20px rgba(0,0,0,.65); --shadow-sm:0 2px 10px -2px rgba(0,0,0,.5);
+  --toast-bg:#202b3c;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'IBM Plex Sans',system-ui,sans-serif;color:var(--text);min-height:100vh;
+  transition:background-color .3s ease,color .3s ease;
+  background:
+    radial-gradient(900px 480px at 88% -8%, var(--glow-a), transparent 60%),
+    radial-gradient(760px 520px at -8% 34%, var(--glow-b), transparent 55%),
+    radial-gradient(var(--dot) 1px, transparent 1.4px),
+    var(--bg);
+  background-size:auto,auto,22px 22px,auto;
+}
+::selection{background:var(--accent-btn);color:#fff}
+button{font-family:inherit}
+input,select,textarea{font-family:inherit;font-size:14px;color:var(--text);background:var(--field-bg)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent-btn)!important;box-shadow:0 0 0 3px var(--accent-soft)}
+#authScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:26px 18px}
+.auth-theme{position:fixed;top:16px;right:16px;z-index:50;display:flex;align-items:center;gap:10px}
+.auth-card{max-width:440px;width:100%;padding:30px;border-top:6px solid var(--indicator)}
+.auth-brand{display:flex;align-items:center;gap:12px}
+.auth-brand svg{filter:drop-shadow(2px 3px 0 rgba(0,0,0,.2))}
+.auth-brand .brand-name{font-family:var(--disp);font-weight:800;font-size:24px;letter-spacing:-.01em;display:block}
+.auth-brand .brand-co{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-soft);display:block;margin-top:3px}
+.auth-err{margin:2px 0 10px;font-size:12.5px;color:var(--danger-tx);font-weight:500}
+.auth-note{margin-top:18px;font-family:var(--mono);font-size:10.5px;color:var(--text-soft);text-align:center;line-height:1.7}
+.auth-about{margin-top:8px;text-align:center;font-family:var(--mono);font-size:10.5px;line-height:1.8}
+.auth-about a,.foot-about{color:var(--accent-text);text-decoration:none;border-bottom:1px dashed var(--accent-soft);cursor:pointer}
+.auth-about a:hover,.foot-about:hover{border-bottom-style:solid}
+.acct{display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);cursor:pointer;transition:.15s;margin-top:6px;text-align:left}
+.acct:hover{border-color:var(--accent-btn);transform:translateX(3px)}
+.acct .an{font-weight:600;font-size:13px}
+.acct .au{font-size:11px;color:var(--text-soft);font-family:var(--mono)}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+.shake{animation:shake .4s}
+.topbar{position:sticky;top:0;z-index:40;background:var(--header-bg);color:#e9eef6;background-image:radial-gradient(rgba(255,255,255,.05) 1px, transparent 1.4px);background-size:16px 16px;border-bottom:2px solid var(--header-accent);transition:background-color .3s ease}
+.topbar-in{max-width:1180px;margin:0 auto;padding:14px 20px 0;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:11px}
+.brand svg{flex:none;filter:drop-shadow(2px 3px 0 rgba(0,0,0,.3))}
+.brand-name{font-family:var(--disp);font-weight:800;font-size:21px;letter-spacing:-.01em;line-height:1;display:block;color:#fff}
+.brand-co{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#9db0c8;display:block;margin-top:3px}
+.top-actions{margin-left:auto;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.save-stamp{font-family:var(--mono);font-size:11px;color:#9db0c8;display:flex;align-items:center;gap:7px;margin-right:4px}
+.save-stamp .dot{width:8px;height:8px;border-radius:50%;background:#4cc38a;animation:pulse 2.4s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(76,195,138,.5)}50%{box-shadow:0 0 0 6px rgba(76,195,138,0)}}
+.userchip{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 6px;border-radius:99px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);font-size:12.5px;font-weight:600;color:#fff}
+.uc-role{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#9db8f2;margin-left:2px}
+.about-btn{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:#9db0c8;cursor:pointer;font-family:var(--disp);font-weight:800;font-size:14px;font-style:italic;line-height:1;transition:.18s;flex:none}
+.about-btn:hover{color:#fff;border-color:var(--indicator);background:rgba(126,162,242,.18);transform:translateY(-1px)}
+.auth-theme .about-btn{background:var(--surface-2);border-color:var(--line-strong);color:var(--text-soft)}
+.auth-theme .about-btn:hover{color:var(--accent-text);border-color:var(--accent-btn)}
+.theme-switch{position:relative;display:flex;padding:3px;border-radius:99px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22)}
+.theme-switch button{position:relative;z-index:1;width:30px;height:26px;border:none;background:none;color:#9db0c8;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:color .2s;border-radius:99px}
+.theme-switch svg{width:14px;height:14px}
+.ts-thumb{position:absolute;top:3px;left:3px;width:30px;height:26px;border-radius:99px;background:var(--indicator);transition:transform .28s cubic-bezier(.65,.05,.35,1);box-shadow:0 2px 6px rgba(0,0,0,.35)}
+[data-theme="dark"] .ts-thumb{transform:translateX(30px)}
+[data-theme="light"] [data-settheme="light"],[data-theme="dark"] [data-settheme="dark"]{color:#10161f}
+.auth-theme .theme-switch{background:var(--surface-2);border-color:var(--line-strong)}
+.auth-theme .theme-switch button{color:var(--text-soft)}
+.auth-theme [data-theme="light"] [data-settheme="light"],.auth-theme [data-theme="dark"] [data-settheme="dark"]{color:#10161f}
+.tbtn{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:9px;cursor:pointer;border:1.5px solid rgba(255,255,255,.28);background:rgba(255,255,255,.06);color:#e9eef6;font-weight:600;font-size:13px;transition:.18s}
+.tbtn:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.5);transform:translateY(-1px)}
+.tbtn:active{transform:translateY(1px)}
+.tbtn.primary{background:#3f6de0;color:#fff;border-color:#3f6de0;box-shadow:0 4px 12px -4px rgba(63,109,224,.6)}
+.tbtn.primary:hover{background:#5581e8}
+.nav{max-width:1180px;margin:0 auto;padding:12px 20px 0;display:flex;gap:4px;position:relative;overflow-x:auto}
+.nav button{background:none;border:none;color:#9db0c8;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:10px 14px 14px;cursor:pointer;transition:.18s;white-space:nowrap;position:relative}
+.nav button:hover{color:#fff}
+.nav button.on{color:#fff}
+.nav button .nb{display:inline-block;min-width:17px;padding:1px 5px;margin-left:6px;border-radius:99px;background:#e8a413;color:#241a03;font-size:10.5px;text-align:center;animation:pulse 2.4s infinite}
+.tab-ind{position:absolute;bottom:0;height:3px;background:var(--indicator);border-radius:3px 3px 0 0;transition:transform .32s cubic-bezier(.65,.05,.35,1),width .32s cubic-bezier(.65,.05,.35,1)}
+main{max-width:1180px;margin:0 auto;padding:26px 20px 90px}
+.view{display:none}.view.on{display:block}
+.grid-2{display:grid;grid-template-columns:1.05fr .95fr;gap:18px;margin-top:18px}
+.stack{display:flex;flex-direction:column;gap:18px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;transition:background-color .3s ease,border-color .3s ease}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 18px;border-bottom:1px dashed var(--line)}
+.panel-head h2{font-family:var(--disp);font-size:17px;font-weight:700;letter-spacing:-.01em}
+.panel-body{padding:16px 18px}
+.mono{font-family:var(--mono)}
+.klabel{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-soft)}
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease,background-color .3s ease,border-color .3s ease}
+.reveal.in{opacity:1;transform:none}
+.hero{background:var(--hero-bg);color:#f2f6fb;border-radius:16px;padding:28px 30px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;border:1px solid var(--line);box-shadow:var(--shadow), inset 0 -4px 0 rgba(126,162,242,.4);background-image:repeating-linear-gradient(-45deg, rgba(255,255,255,.03) 0 2px, transparent 2px 14px);transition:background-color .3s ease}
+.hero .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--indicator);margin-bottom:9px}
+.hero h1{font-family:var(--disp);font-weight:800;font-size:clamp(26px,4vw,40px);letter-spacing:-.02em;line-height:1.05}
+.hero .sub{margin-top:9px;color:#b6c3d8;font-size:14.5px;max-width:52ch}
+.h-avs{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.av{width:40px;height:40px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;border:2px solid rgba(255,255,255,.85);box-shadow:0 3px 8px rgba(0,0,0,.25);transition:transform .18s;flex:none}
+.av:hover{transform:translateY(-3px) scale(1.06)}
+.av-sm{width:32px;height:32px;font-size:11px;border-width:1.5px}
+.av-lg{width:54px;height:54px;font-size:17px}
+.h-chip{font-family:var(--mono);font-size:11px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);padding:6px 11px;border-radius:99px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:18px}
+.tile{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:18px 18px 15px;box-shadow:var(--shadow-sm);transition:transform .2s,box-shadow .2s,background-color .3s ease,border-color .3s ease;overflow:hidden}
+.tile::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;background:var(--ac,var(--accent-btn))}
+.tile:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+.tile .klabel{display:block;margin-bottom:8px}
+.tile b{font-family:var(--disp);font-weight:800;font-size:clamp(30px,3.4vw,42px);letter-spacing:-.02em;line-height:1;display:block}
+.tile .hint{font-size:12px;color:var(--text-soft);margin-top:7px}
+[data-tile]{cursor:pointer}
+[data-tile]:active{transform:translateY(-1px) scale(.99)}
+[data-tile]:focus-visible{outline:3px solid var(--accent-soft);outline-offset:2px}
+.tile-hintgo{position:absolute;right:13px;bottom:11px;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-text);opacity:0;transform:translateX(-6px);transition:.22s;pointer-events:none}
+.tile:hover .tile-hintgo,.tile:focus-visible .tile-hintgo{opacity:1;transform:none}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:9px;cursor:pointer;border:1.5px solid var(--line-strong);background:var(--surface);color:var(--text);font-weight:600;font-size:13.5px;box-shadow:var(--shadow-sm);transition:.16s}
+.btn:hover{border-color:var(--text-soft);transform:translateY(-1px)}
+.btn:active{transform:translateY(1px);box-shadow:none}
+.btn-primary{background:var(--accent-btn);border-color:var(--accent-btn);color:#fff}
+.btn-primary:hover{filter:brightness(1.1);border-color:var(--accent-btn)}
+.btn-ink{background:var(--ink-btn);border-color:var(--ink-btn);color:#fff}
+.btn-danger{border-color:var(--danger);color:var(--danger-tx)}
+.btn-danger:hover{background:var(--danger-bg);border-color:var(--danger)}
+.btn-reject-solid{background:var(--danger);border-color:var(--danger);color:#fff}
+.btn-sm{padding:6px 11px;font-size:12.5px}
+.icon-btn{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer;color:var(--text-soft);transition:.16s;flex:none}
+.icon-btn:hover{border-color:var(--text-soft);color:var(--text);transform:translateY(-2px)}
+.icon-btn.ok:hover{border-color:var(--ok-tx);color:var(--ok-tx);background:color-mix(in srgb, var(--ok-tx) 10%, transparent)}
+.icon-btn.no:hover{border-color:var(--danger);color:var(--danger-tx);background:var(--danger-bg)}
+.icon-btn svg{width:15px;height:15px}
+.chip{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:99px;border:1px solid var(--line);background:var(--surface-2);color:var(--text-soft)}
+.chip.deleg{background:var(--pend-bg);border-color:var(--pend-bd);color:var(--pend-tx)}
+.fchip{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:7px 13px;border-radius:99px;border:1.5px solid var(--line-strong);background:var(--surface);color:var(--text-soft);cursor:pointer;transition:.16s}
+.fchip:hover{border-color:var(--text-soft)}
+.fchip.on{background:var(--accent-btn);border-color:var(--accent-btn);color:#fff;box-shadow:0 4px 10px -4px var(--accent-soft)}
+.fchip .cnt{margin-left:5px;opacity:.75}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px;white-space:nowrap;background:color-mix(in srgb, var(--pc) 15%, transparent);border:1px solid color-mix(in srgb, var(--pc) 45%, transparent);color:color-mix(in srgb, var(--pc) 60%, var(--text))}
+.badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:99px;border:1px solid}
+.badge i{width:7px;height:7px;border-radius:50%;background:currentColor}
+.badge.pending{background:var(--pend-bg);border-color:var(--pend-bd);color:var(--pend-tx)}
+.badge.pending i{animation:pulse 2s infinite}
+.badge.approved{background:var(--ok-bg);border-color:var(--ok-bd);color:var(--ok-tx)}
+.badge.rejected{background:var(--danger-bg);border-color:var(--danger-bd);color:var(--danger-tx)}
+.bar{height:8px;background:var(--track);border-radius:99px;overflow:hidden;flex:1}
+.bar i{display:block;height:100%;width:0;border-radius:99px;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.brow{display:flex;align-items:center;gap:14px;padding:9px 0;border-bottom:1px dashed var(--line)}
+.brow:last-child{border-bottom:none}
+.bname{font-weight:600;font-size:13.5px;width:150px;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bbars{display:flex;gap:10px;flex-wrap:wrap;flex:1}
+.bseg{display:flex;align-items:center;gap:6px;width:118px}
+.bseg .bar{width:72px;flex:none}
+.bseg small{font-family:var(--mono);font-size:10.5px;color:var(--text-soft)}
+.bseg small.neg{color:var(--danger-tx);font-weight:600}
+.tscroll{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;min-width:760px}
+.tbl th{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-soft);text-align:left;padding:10px;border-bottom:1.5px solid var(--line)}
+.tbl td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:middle;font-size:13.5px}
+.tbl tbody tr{transition:background .15s}
+.tbl tbody tr:hover{background:var(--surface-2)}
+.tbl tr.dim{opacity:.5}
+.emp-cell{display:flex;align-items:center;gap:11px}
+.emp-cell .nm{font-weight:600;transition:color .15s}
+.emp-cell .em{font-size:11.5px;color:var(--text-soft);font-family:var(--mono)}
+.rrow td:first-child{border-left:4px solid transparent}
+.reason{font-size:11.5px;color:var(--text-soft);font-style:italic;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.warnflag{font-family:var(--mono);font-size:10px;color:var(--danger-tx);border:1px solid var(--danger-bd);background:var(--danger-bg);border-radius:6px;padding:2px 6px;margin-left:6px}
+.attflag{font-family:var(--mono);font-size:10px;color:var(--accent-text);border:1px solid var(--accent-soft);background:color-mix(in srgb, var(--accent-btn) 8%, transparent);border-radius:6px;padding:2px 6px;margin-left:6px;cursor:pointer;text-decoration:none;display:inline-block}
+.attflag:hover{text-decoration:underline}
+.hide{display:none!important}
+[data-profile]{cursor:pointer}
+tr[data-profile]:hover .nm{color:var(--accent-text)}
+.brow[data-profile]:hover .bname{color:var(--accent-text)}
+.qrow{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px dashed var(--line)}
+.qrow:last-child{border-bottom:none}
+.qrow .qinfo{flex:1;min-width:0}
+.qrow .qn{font-weight:600;font-size:13.5px}
+.qrow .qd{font-family:var(--mono);font-size:11.5px;color:var(--text-soft);margin-top:2px}
+.qacts{display:flex;gap:7px}
+.urow{display:flex;align-items:center;gap:13px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.urow:last-child{border-bottom:none}
+.db{width:46px;flex:none;text-align:center;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:5px 0}
+.db b{font-family:var(--disp);font-size:18px;font-weight:800;display:block;line-height:1}
+.db span{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-soft)}
+.uinfo{flex:1;min-width:0}
+.uinfo .un{font-weight:600;font-size:13.5px}
+.uinfo .ud{font-family:var(--mono);font-size:11px;color:var(--text-soft);margin-top:2px}
+.empty{text-align:center;padding:36px 16px;color:var(--text-soft)}
+.empty .glyph{font-family:var(--disp);font-size:34px;font-weight:800;color:var(--accent-text);display:block;margin-bottom:8px}
+.empty p{font-size:13.5px;max-width:34ch;margin:0 auto}
+.cal-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cal-title{font-family:var(--disp);font-weight:800;font-size:clamp(20px,2.6vw,28px);letter-spacing:-.01em}
+.cal-nav{display:flex;gap:6px;margin-left:auto}
+.wdrow,.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.wdrow{margin-bottom:6px}
+.wdrow span{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-soft);text-align:center;padding:4px 0}
+.cell{min-height:94px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 7px;overflow:hidden;transition:.16s}
+.cell:hover{border-color:var(--line-strong);box-shadow:var(--shadow-sm)}
+.cell.weekend{background:var(--surface-2)}
+.cell.holiday{background:color-mix(in srgb, var(--hol) 9%, var(--surface));border-color:color-mix(in srgb, var(--hol) 45%, var(--line))}
+.cell.today{border:1.5px solid var(--indicator);box-shadow:0 0 0 3px var(--accent-soft)}
+.cell.blank{background:transparent;border-color:transparent}
+.dnum{font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--text-soft)}
+.cell.today .dnum{color:#0e1520;background:var(--indicator);border-radius:6px;padding:1px 6px;display:inline-block}
+.cpill{display:block;font-size:10.5px;font-weight:600;padding:2.5px 6px;border-radius:6px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:transform .12s;cursor:default;background:color-mix(in srgb, var(--pc) 18%, transparent);border:1px solid color-mix(in srgb, var(--pc) 55%, transparent);color:color-mix(in srgb, var(--pc) 60%, var(--text))}
+.cpill:hover{transform:scale(1.03)}
+.cpill.pend{border-style:dashed!important;opacity:.85}
+.cmore{font-family:var(--mono);font-size:9.5px;color:var(--text-soft);margin-top:3px;display:block}
+.legend{display:flex;gap:14px;flex-wrap:wrap}
+.legend .li{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:500}
+.legend .li i{width:11px;height:11px;border-radius:3.5px}
+.legend .li b{font-family:var(--mono);font-size:11px;color:var(--text-soft);font-weight:500}
+.set-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.field{margin-bottom:14px}
+.field label{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--text-soft);margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;padding:10px 12px;border:1.5px solid var(--line-strong);border-radius:9px;transition:border-color .15s,box-shadow .15s,background-color .3s ease}
+.field-note{font-size:11.5px;color:var(--text-soft);margin-top:6px;font-style:italic}
+.search-in{padding:8px 12px;border:1.5px solid var(--line-strong);border-radius:9px;min-width:180px;background:var(--field-bg);color:var(--text)}
+.trow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line);flex-wrap:wrap}
+.trow:last-child{border-bottom:none}
+.dot{width:24px;height:24px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1.5px var(--line-strong);cursor:pointer;flex:none;transition:transform .15s}
+.dot:hover{transform:scale(1.18)}
+.tname{flex:1;min-width:130px;padding:8px 10px;border:1.5px solid var(--line-strong);border-radius:8px}
+.tallow{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-soft)}
+.tallow input{width:64px;padding:7px 8px;border:1.5px solid var(--line-strong);border-radius:8px;text-align:right;font-family:var(--mono)}
+.tallow input.wide{width:74px}
+.tres{padding:7px 8px;border:1.5px solid var(--line-strong);border-radius:8px;background:var(--field-bg);color:var(--text);font-size:12.5px}
+.twd{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;white-space:nowrap}
+.twd input{accent-color:var(--accent-btn);width:15px;height:15px}
+.danger-zone{border:1.5px dashed var(--danger-bd);background:color-mix(in srgb, var(--danger) 4%, var(--surface))}
+.dz-btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.storage-note{font-family:var(--mono);font-size:11px;color:var(--text-soft);line-height:1.8;margin-top:10px}
+.hol-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.hol-row:last-child{border-bottom:none}
+.hol-row .hd{font-family:var(--mono);font-size:12px;width:110px;flex:none}
+.hol-row .hn{font-weight:500}
+.hol-row .hy{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--text-soft)}
+.overlay{position:fixed;inset:0;background:rgba(8,12,20,.55);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;z-index:60;opacity:0;pointer-events:none;transition:opacity .22s}
+.overlay.open{opacity:1;pointer-events:auto}
+.modal{background:var(--surface);border-radius:16px;border-top:6px solid var(--indicator);max-width:580px;width:calc(100% - 32px);max-height:88vh;overflow:auto;padding:26px 26px 22px;transform:translateY(16px) scale(.97);transition:transform .26s cubic-bezier(.2,.9,.3,1.2),background-color .3s ease;box-shadow:0 30px 60px -20px rgba(0,0,0,.5)}
+.modal.wide{max-width:720px}
+.overlay.open .modal{transform:none}
+.modal h3{font-family:var(--disp);font-weight:800;font-size:21px;letter-spacing:-.01em;margin-bottom:4px}
+.modal .msub{font-size:13px;color:var(--text-soft);margin-bottom:18px}
+.mrow{display:flex;gap:12px;flex-wrap:wrap}
+.mrow .field{flex:1;min-width:140px}
+.mactions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.prev-box{background:var(--surface-2);border:1px dashed var(--line-strong);border-radius:10px;padding:13px 15px;margin-top:4px}
+.prev-grid{display:flex;gap:26px}
+.prev-grid b{font-family:var(--disp);font-size:21px;font-weight:800;display:block}
+.prev-grid b.neg,#pv-bal.neg{color:var(--danger-tx)}
+.warn-strip{margin-top:10px;font-size:12.5px;background:var(--pend-bg);border:1px solid var(--pend-bd);color:var(--pend-tx);border-radius:8px;padding:8px 11px}
+.ok-strip{margin-top:10px;font-size:12.5px;background:var(--ok-bg);border:1px solid var(--ok-bd);color:var(--ok-tx);border-radius:8px;padding:8px 11px}
+.ovr-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.phead{display:flex;align-items:center;gap:14px}
+.psub{font-size:13px;color:var(--text-soft);margin-top:2px}
+.pmail{font-family:var(--mono);font-size:11px;color:var(--text-soft);margin-top:3px}
+.chiprow{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.pstats{display:flex;gap:26px;background:var(--surface-2);border:1px dashed var(--line-strong);border-radius:10px;padding:12px 16px;margin:16px 0;flex-wrap:wrap}
+.pstats>div b{font-family:var(--disp);font-size:20px;font-weight:800;display:block;margin-top:2px}
+.pcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.pcard{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:color-mix(in srgb, var(--pc) 6%, var(--surface))}
+.pc-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px}
+.pc-top b{font-family:var(--disp);font-size:17px;font-weight:800}
+.pc-top b.neg{color:var(--danger-tx)}
+.pc-meta{font-family:var(--mono);font-size:10.5px;color:var(--text-soft);margin-top:8px}
+.psec{display:block;margin:18px 0 4px}
+.prow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);flex-wrap:wrap}
+.prow:last-child{border-bottom:none}
+.pnone{font-size:12.5px;color:var(--text-soft);font-style:italic;padding:8px 0}
+.about-head{display:flex;align-items:center;gap:14px;padding-bottom:16px;border-bottom:1px dashed var(--line);margin-bottom:18px}
+.about-head svg{flex:none;filter:drop-shadow(2px 3px 0 rgba(0,0,0,.2))}
+.about-head h3{font-family:var(--disp);font-weight:800;font-size:22px;margin-bottom:2px}
+.about-head .brand-co{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-soft);margin:0}
+.about-creator{display:flex;gap:14px;align-items:center;padding:16px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;margin-bottom:16px}
+.about-creator .av{border-color:var(--surface)}
+.about-creator-info{flex:1;min-width:0}
+.about-creator-info b{font-family:var(--disp);font-weight:800;font-size:17px;display:block}
+.about-creator-info .ac-role{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-soft);margin-top:2px;display:block}
+.about-creator a.mailpill{display:inline-flex;align-items:center;gap:7px;margin-top:10px;padding:7px 13px;border-radius:99px;font-family:var(--mono);font-size:11.5px;font-weight:600;background:var(--accent-btn);color:#fff;text-decoration:none;transition:.16s;border:1.5px solid var(--accent-btn)}
+.about-creator a.mailpill:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.about-creator a.mailpill svg{width:13px;height:13px}
+.about-uses{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:4px 0 18px}
+.about-uses>div{padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--surface-2)}
+.about-uses>div b{font-family:var(--disp);font-weight:700;font-size:14px;display:block;margin-bottom:3px}
+.about-uses>div span{font-size:11.5px;color:var(--text-soft);line-height:1.45}
+.license-block{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;font-family:var(--mono);font-size:11px;line-height:1.65;color:var(--text-soft);max-height:260px;overflow:auto;white-space:pre-wrap;word-break:break-word}
+.license-block .lh{display:block;font-weight:700;color:var(--text);margin-bottom:6px;font-family:var(--disp);font-size:13px;letter-spacing:-.01em}
+.license-meta{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-family:var(--mono);font-size:10.5px;color:var(--text-soft)}
+.license-meta span{padding:3px 9px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+.toasts{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:10px;z-index:90;max-width:min(380px,calc(100vw - 36px))}
+.toast{background:var(--toast-bg);color:#f2f6fb;padding:13px 16px;border-radius:11px;border-left:5px solid var(--indicator);box-shadow:0 16px 30px -12px rgba(0,0,0,.4);font-size:13.5px;font-weight:500;animation:tin .32s cubic-bezier(.2,.9,.3,1.2)}
+.toast.err{border-left-color:var(--danger)}
+.toast.ok{border-left-color:var(--ok-solid)}
+@keyframes tin{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+.toast.out{opacity:0;transform:translateX(30px);transition:.3s}
+.dropzone{position:fixed;inset:10px;z-index:100;border:3px dashed var(--indicator);border-radius:20px;background:rgba(10,15,24,.92);display:none;align-items:center;justify-content:center;color:#fff;pointer-events:none}
+.dropzone.on{display:flex}
+.dropzone .dzin{text-align:center}
+.dropzone .glyph{font-family:var(--disp);font-weight:800;font-size:40px;color:var(--indicator);display:block}
+.dropzone p{font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;margin-top:8px;color:#cdd7e4}
+footer{max-width:1180px;margin:0 auto;padding:0 20px 30px;font-family:var(--mono);font-size:11px;color:var(--text-soft);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.report-nav{display:flex;gap:8px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px dashed var(--line);background:var(--surface-2);align-items:center}
+.rchip{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:99px;border:1.5px solid var(--line-strong);background:var(--surface);color:var(--text-soft);cursor:pointer;font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.06em;transition:.16s}
+.rchip:hover{border-color:var(--text-soft);color:var(--text)}
+.rchip.on{background:var(--accent-btn);border-color:var(--accent-btn);color:#fff;box-shadow:0 4px 10px -4px var(--accent-soft)}
+.rchip svg{width:14px;height:14px}
+.report-controls{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.report-scope{padding:7px 10px;border:1.5px solid var(--line-strong);border-radius:8px;background:var(--surface);color:var(--text);font-family:var(--mono);font-size:11.5px}
+.scope-banner{margin:0 18px 14px;padding:9px 14px;border:1px dashed var(--line-strong);border-radius:9px;font-family:var(--mono);font-size:11px;color:var(--text-soft);background:var(--surface-2);display:flex;align-items:center;gap:8px}
+.scope-banner b{color:var(--text);font-weight:700}
+.report-grid{display:grid;gap:14px}
+.report-grid.cols-2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.report-grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.report-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow-sm);transition:background-color .3s ease,border-color .3s ease}
+.report-card h3{font-family:var(--disp);font-size:15px;font-weight:700;margin-bottom:14px;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.report-card h3 svg{width:16px;height:16px;color:var(--accent-text)}
+.stat-num{font-family:var(--disp);font-weight:800;font-size:clamp(28px,3vw,38px);letter-spacing:-.02em;line-height:1;display:block;margin-top:4px}
+.stat-num.neg{color:var(--danger-tx)}
+.stat-num.warn{color:var(--warn-tx)}
+.stat-num.ok{color:var(--ok-tx)}
+.stat-sub{font-size:12px;color:var(--text-soft);margin-top:6px;font-family:var(--mono);letter-spacing:.04em}
+.chart-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.chart-row:last-child{border-bottom:none}
+.chart-label{width:140px;flex:none;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px}
+.chart-bar{flex:1;height:12px;background:var(--track);border-radius:99px;overflow:hidden;position:relative}
+.chart-bar i{display:block;height:100%;border-radius:99px;transition:width .9s cubic-bezier(.2,.8,.2,1);background:var(--accent-btn)}
+.chart-val{font-family:var(--mono);font-size:11px;color:var(--text-soft);width:70px;flex:none;text-align:right}
+.chart-val b{color:var(--text);font-weight:700}
+.vbar-wrap{display:flex;align-items:flex-end;gap:10px;height:200px;padding:10px 0;border-bottom:1px solid var(--line)}
+.vbar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.vbar-stack{width:100%;display:flex;flex-direction:column;gap:2px;align-items:stretch;min-height:1px}
+.vbar-seg{width:100%;border-radius:3px 3px 0 0;min-height:0;transition:height .9s cubic-bezier(.2,.8,.2,1)}
+.vbar-lbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--text-soft);text-transform:uppercase}
+.vbar-val{font-family:var(--mono);font-size:10px;color:var(--text-soft);white-space:nowrap}
+.dept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.dept-card{border:1px solid var(--line);border-radius:11px;padding:14px;background:var(--surface-2)}
+.dept-card b{font-family:var(--disp);font-size:15px;font-weight:700;display:block;margin-bottom:4px}
+.dept-card .dm{font-family:var(--mono);font-size:10.5px;color:var(--text-soft);letter-spacing:.06em}
+.dept-card .dn{margin-top:10px;font-family:var(--disp);font-weight:800;font-size:22px;line-height:1}
+.dept-card .ds{font-size:11.5px;color:var(--text-soft);margin-top:3px}
+.flag-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.flag-row:last-child{border-bottom:none}
+.flag-row b{font-weight:600}
+.flag-row .flag-meta{font-family:var(--mono);font-size:11px;color:var(--text-soft);margin-left:auto;text-align:right}
+.flag-pill{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:99px;border:1px solid}
+.flag-pill.neg{background:var(--danger-bg);border-color:var(--danger-bd);color:var(--danger-tx)}
+.flag-pill.warn{background:var(--warn-bg);border-color:var(--warn-bd);color:var(--warn-tx)}
+.flag-pill.zero{background:color-mix(in srgb, var(--text-soft) 10%, transparent);border-color:var(--line-strong);color:var(--text-soft)}
+.rpt-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+.rpt-actions .btn svg{width:14px;height:14px}
+.audit-act{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);color:var(--text-soft)}
+.audit-act.approve_request{background:var(--ok-bg);border-color:var(--ok-bd);color:var(--ok-tx)}
+.audit-act.reject_request{background:var(--danger-bg);border-color:var(--danger-bd);color:var(--danger-tx)}
+.audit-act.submit_request{background:var(--pend-bg);border-color:var(--pend-bd);color:var(--pend-tx)}
+.audit-act.delete_employee,.audit-act.delete_request{background:var(--danger-bg);border-color:var(--danger-bd);color:var(--danger-tx)}
+.audit-act.reset_passwords{background:var(--pend-bg);border-color:var(--pend-bd);color:var(--pend-tx)}
+#printFrame{position:fixed;right:0;bottom:0;width:0;height:0;border:0}
+@media(max-width:880px){
+  .grid-2,.set-grid{grid-template-columns:1fr}
+  .bname{width:100px}
+  .hero{padding:22px}
+  .cell{min-height:72px}
+  .cpill{font-size:9px}
+  .chart-label{width:100px}
+}
+</style>
+</head>
+<body>
+
+<section id="authScreen">
+  <div class="auth-theme">
+    <button class="about-btn" type="button" data-about title="About LeaveDesk" aria-label="About LeaveDesk">i</button>
+    <div class="theme-switch" role="group" aria-label="Colour theme">
+      <button type="button" data-settheme="light" title="Light theme" aria-label="Light theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
+      </button>
+      <button type="button" data-settheme="dark" title="Dark theme" aria-label="Dark theme">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.4 14.2A8.5 8.5 0 0 1 9.8 3.6 8.5 8.5 0 1 0 20.4 14.2z"/></svg>
+      </button>
+      <span class="ts-thumb" aria-hidden="true"></span>
+    </div>
+  </div>
+  <div class="auth-card panel"><div id="authInner"></div></div>
+</section>
+
+<div id="appShell" class="hide">
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+        <rect x="1" y="4" width="32" height="29" rx="7" fill="#3f6de0"/>
+        <rect x="1" y="4" width="32" height="9" rx="4.5" fill="#16202e"/>
+        <rect x="8" y="1" width="4" height="8" rx="2" fill="#eef2f8"/>
+        <rect x="22" y="1" width="4" height="8" rx="2" fill="#eef2f8"/>
+        <circle cx="17" cy="23" r="6" fill="#ffffff"/>
+        <path d="M17 17.5v2M22.5 23h-2M17 28.5v-2M11.5 23h2" stroke="#3f6de0" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <div><span class="brand-name">LeaveDesk</span><span class="brand-co" id="brandCo">—</span></div>
+    </div>
+    <div class="top-actions">
+      <button class="about-btn" type="button" data-about title="About LeaveDesk" aria-label="About LeaveDesk">i</button>
+      <div class="theme-switch" role="group" aria-label="Colour theme">
+        <button type="button" data-settheme="light" title="Light theme" aria-label="Light theme">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
+        </button>
+        <button type="button" data-settheme="dark" title="Dark theme" aria-label="Dark theme">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.4 14.2A8.5 8.5 0 0 1 9.8 3.6 8.5 8.5 0 1 0 20.4 14.2z"/></svg>
+        </button>
+        <span class="ts-thumb" aria-hidden="true"></span>
+      </div>
+      <span class="save-stamp"><span class="dot"></span><span id="saveStamp">Saved locally</span></span>
+      <button class="tbtn" id="btnExport" title="Download all data + settings as a .ldesk file">⤓&nbsp;Export .ldesk</button>
+      <button class="tbtn" id="btnImport" title="Load a LeaveDesk .ldesk file">⤒&nbsp;Import</button>
+      <input type="file" id="fileImport" accept=".ldesk" hidden>
+      <button class="tbtn primary" id="btnNewRequest">+ New request</button>
+      <span id="userBox" style="display:flex;gap:9px;align-items:center"></span>
+    </div>
+  </div>
+  <nav class="nav" id="nav"></nav>
+</header>
+
+<main>
+  <section class="view" id="view-dashboard"></section>
+  <section class="view" id="view-requests"></section>
+  <section class="view" id="view-team"></section>
+  <section class="view" id="view-reports"></section>
+  <section class="view" id="view-calendar"></section>
+  <section class="view" id="view-settings"></section>
+  <section class="view" id="view-myleave"></section>
+  <section class="view" id="view-approvals"></section>
+</main>
+
+<footer>
+  <b>LeaveDesk</b> · single-file HR leave manager · data lives in your browser &amp; your .ldesk files · <span class="foot-about" data-about>About</span>
+</footer>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="overlay" id="overlay"><div class="modal" id="modalBox" role="dialog" aria-modal="true"></div></div>
+<div class="dropzone" id="dropzone"><div class="dzin"><span class="glyph">⇣</span><p>Release to import .ldesk</p></div></div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const LS_KEY='leavedesk.v1', THEME_KEY='leavedesk.theme', SESSION_KEY='leavedesk.session';
+const DEMO_PASSWORD='demo123';
+const PALETTE=['#3e63c4','#0f7b8a','#b7791f','#c2554a','#708238','#8d5a86'];
+const uid=()=> (crypto.randomUUID ? crypto.randomUUID() : 'id'+Math.random().toString(36).slice(2,10));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clone=o=>JSON.parse(JSON.stringify(o));
+const pad=n=>String(n).padStart(2,'0');
+const toISO=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const fromISO=s=>{const[a,b,c]=s.split('-').map(Number);return new Date(a,b-1,c)};
+const today=()=>toISO(new Date());
+const fmt=(s,o={month:'short',day:'numeric'})=>fromISO(s).toLocaleDateString(undefined,o);
+const rangeLabel=(f,t)=> f===t ? fmt(f) : `${fmt(f)} → ${fmt(t)}`;
+const initials=n=>n.trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+const hashColor=n=>PALETTE[[...n].reduce((a,c)=>a+c.charCodeAt(0),0)%PALETTE.length];
+const avatarHTML=(n,sm)=>`<span class="av ${sm?'av-sm':''}" style="background:${hashColor(n)}" title="${esc(n)}">${esc(initials(n))}</span>`;
+const typePill=t=>`<span class="pill" style="--pc:${t.color}">${esc(t.name)}</span>`;
+const sexLabel=s=>s==='female'?'Female':s==='male'?'Male':'—';
+const sexWord=r=>r==='female'?'female':'male';
+const roleLabel=r=>r==='hr'?'HR admin':r==='manager'?'Manager':'Employee';
+const rolePill=r=> r==='hr' ? '<span class="pill" style="--pc:#3f6de0">HR</span>'
+  : r==='manager' ? '<span class="pill" style="--pc:#0f8a8a">Manager</span>'
+  : '<span class="chip">Employee</span>';
+
+function fmtNum(n){ n=Math.round(n*10)/10; return Number.isInteger(n)?String(n):n.toFixed(1); }
+function fmtDays(n){ return fmtNum(n)+'d'; }
+function fmtDateTime(iso){ const d=new Date(iso); return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'2-digit'})+' · '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
+function fmtDateFull(iso){ return fmt(iso,{year:'2-digit',month:'short',day:'numeric'}); }
+
+function isHoliday(iso){ return (state.settings.holidays||[]).some(h=>h.date===iso); }
+function holidayName(iso){ const h=(state.settings.holidays||[]).find(x=>x.date===iso); return h?h.name:''; }
+function workingDays(from,to,countsWeekends){
+  if(!from||!to||to<from) return 0;
+  let n=0,d=fromISO(from),end=fromISO(to);
+  while(d<=end && n<400){
+    const iso=toISO(d), g=d.getDay(), wknd=(g===0||g===6);
+    if(countsWeekends) n++;
+    else if(!wknd && !isHoliday(iso)) n++;
+    d.setDate(d.getDate()+1);
+  }
+  return n;
+}
+function computeDays(from,to,tp,durationType='full',hoursPerDay=8){
+  const count=workingDays(from,to,tp.countsWeekends);
+  if(durationType==='half') return count*0.5;
+  if(durationType==='hours') return count*(Math.min(8,Math.max(0.5,hoursPerDay||8))/8);
+  return count;
+}
+function monthsElapsedInFY(year,ref){
+  const now=ref||new Date();
+  if(now.getFullYear()>year) return 12;
+  if(now.getFullYear()<year) return 0;
+  return now.getMonth()+1;
+}
+function usedDaysInYear(empId,typeId,year){
+  return state.requests.filter(r=>r.employeeId===empId&&r.typeId===typeId&&r.status==='approved'&&r.from.slice(0,4)===String(year)).reduce((s,r)=>s+r.days,0);
+}
+function usedDays(empId,typeId){ return usedDaysInYear(empId,typeId,state.settings.year); }
+function effectiveAllowance(emp,tp,year){
+  year=year||state.settings.year;
+  let base=allowanceFor(emp,tp.id);
+  if(!base) return 0;
+  if(tp.accrualRate==='monthly'){ base=base*(monthsElapsedInFY(year)/12); }
+  if(tp.proRateFromJoinDate&&emp.joined){
+    const j=fromISO(emp.joined);
+    if(j.getFullYear()===year){ base=base*((12-j.getMonth())/12); }
+    else if(j.getFullYear()>year){ return 0; }
+  }
+  if(tp.carryoverCap>0){
+    const prev=year-1;
+    const prevAllow=allowanceFor(emp,tp.id);
+    const prevUsed=usedDaysInYear(emp.id,tp.id,prev);
+    const unused=prevAllow-prevUsed;
+    base+=Math.max(0,Math.min(unused,tp.carryoverCap));
+  }
+  return Math.round(base*10)/10;
+}
+
+function applyTheme(t,persist=true){
+  document.documentElement.dataset.theme=t;
+  if(persist){try{localStorage.setItem(THEME_KEY,t)}catch(e){}}
+  $$('[data-settheme]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.settheme===t)));
+}
+applyTheme(document.documentElement.dataset.theme||'light',false);
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',e=>{
+  let stored=null; try{stored=localStorage.getItem(THEME_KEY)}catch(err){}
+  if(!stored) applyTheme(e.matches?'dark':'light',false);
+});
+
+function hashPw(pw,salt){
+  const s=(salt||'')+'|'+pw;
+  let h1=0xdeadbeef,h2=0x41c6ce57;
+  for(let i=0;i<s.length;i++){const ch=s.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677);}
+  h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);
+  h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+  return (h2>>>0).toString(16).padStart(8,'0')+(h1>>>0).toString(16).padStart(8,'0');
+}
+function setPassword(e,plain){e.pwSalt=uid();e.pwHash=hashPw(plain,e.pwSalt)}
+const verifyPw=(e,plain)=>!!(e.pwHash&&hashPw(plain,e.pwSalt||'')===e.pwHash);
+function saveSession(id){try{localStorage.setItem(SESSION_KEY,id)}catch(e){}}
+function loadSessionId(){try{return localStorage.getItem(SESSION_KEY)}catch(e){return null}}
+function clearSession(){try{localStorage.removeItem(SESSION_KEY)}catch(e){}}
+
+function resetDemoPasswords(){
+  if(!state||!state.employees.length){toast('No accounts to reset yet.','err');return}
+  confirmModal('Reset all passwords to demo123?',
+    `<p style="font-size:13.5px;line-height:1.6">Every account in this workspace will have its password set to <b>demo123</b>.<br><br>This affects <b>${state.employees.length}</b> account(s).</p>`,
+    'Reset all to demo123',()=>{
+      state.employees.forEach(e=>{ if(e.username) setPassword(e,DEMO_PASSWORD); });
+      logAudit('reset_passwords',null,null,{count:state.employees.length});
+      save();
+      renderAuth();
+      toast(`All ${state.employees.length} account(s) now use password demo123.`,'ok');
+    });
+}
+
+function defaultSettings(){
+  return {
+    companyName:'Northwind Labs', year:new Date().getFullYear(), weekStartsMonday:true,
+    holidays:[{id:uid(),date:`${new Date().getFullYear()}-12-25`,name:'Christmas Day'},{id:uid(),date:`${new Date().getFullYear()}-01-01`,name:'New Year\u2019s Day'}],
+    leaveTypes:[
+      {id:'annual',   name:'Annual Leave',    color:'#3e63c4', allowance:20, countsWeekends:false, sexRestriction:null, accrualRate:'annual', carryoverCap:0, proRateFromJoinDate:false},
+      {id:'sick',     name:'Sick Leave',      color:'#c2554a', allowance:10, countsWeekends:false, sexRestriction:null, accrualRate:'annual', carryoverCap:0, proRateFromJoinDate:false},
+      {id:'personal', name:'Personal Day',    color:'#b7791f', allowance:5,  countsWeekends:false, sexRestriction:null, accrualRate:'annual', carryoverCap:0, proRateFromJoinDate:false},
+      {id:'maternity',name:'Maternity Leave', color:'#8d5a86', allowance:90, countsWeekends:true,  sexRestriction:'female', accrualRate:'annual', carryoverCap:0, proRateFromJoinDate:false},
+      {id:'paternity',name:'Paternity Leave', color:'#34699a', allowance:14, countsWeekends:true,  sexRestriction:'male', accrualRate:'annual', carryoverCap:0, proRateFromJoinDate:false},
+      {id:'unpaid',   name:'Unpaid Leave',    color:'#0f7b8a', allowance:0,  countsWeekends:false, sexRestriction:null, accrualRate:'annual', carryoverCap:0, proRateFromJoinDate:false},
+    ]
+  };
+}
+let state=null, lastSaved=null;
+const ui={tab:'dashboard', filter:'all', month:new Date(), report:'overview', reportScope:'fy', auditFilter:'all', auditSearch:''};
+ui.month.setDate(1);
+
+const typeById=id=>state.settings.leaveTypes.find(t=>t.id===id)||{id,name:'(removed type)',color:'#8a97a8',allowance:0,countsWeekends:true,sexRestriction:null,accrualRate:'annual',carryoverCap:0,proRateFromJoinDate:false};
+const empById=id=>state.employees.find(e=>e.id===id);
+const allowanceFor=(emp,typeId)=> (emp.overrides&&emp.overrides[typeId]!=null)?emp.overrides[typeId]:typeById(typeId).allowance;
+const inYear=r=>r.from.slice(0,4)===String(state.settings.year);
+const overlapsOf=r=>state.requests.filter(o=>o.id!==r.id&&o.employeeId===r.employeeId&&o.status!=='rejected'&&o.from<=r.to&&o.to>=r.from);
+const isEligible=(emp,type)=>!type.sexRestriction||((emp?.sex||'')===type.sexRestriction);
+const mismatch=(e,tp)=>!!(tp.sexRestriction&&e&&(e.sex||'')!==tp.sexRestriction);
+function currentUser(){const id=loadSessionId();return id?(empById(id)||null):null}
+
+function logAudit(action,targetId,before,after,note){
+  if(!state.audit) state.audit=[];
+  const me=currentUser();
+  state.audit.push({id:uid(),at:new Date().toISOString(),actorId:me?me.id:null,actorName:me?me.name:'System',action,targetId,before:before||null,after:after||null,note:note||''});
+  if(state.audit.length>1000) state.audit=state.audit.slice(-1000);
+}
+const AUDIT_LABEL={submit_request:'Submit request',approve_request:'Approve request',reject_request:'Reject request',reopen_request:'Reopen request',cancel_request:'Cancel request',delete_request:'Delete request',add_employee:'Add employee',edit_employee:'Edit employee',delete_employee:'Delete employee',add_leavetype:'Add leave type',edit_leavetype:'Edit leave type',delete_leavetype:'Delete leave type',add_holiday:'Add holiday',delete_holiday:'Delete holiday',edit_settings:'Edit settings',import_workspace:'Import workspace',reset_passwords:'Reset passwords'};
+
+function isOnLeaveToday(empId){
+  const t=today();
+  return state.requests.some(r=>r.employeeId===empId&&r.status==='approved'&&r.from<=t&&r.to>=t);
+}
+function canApprove(u,r){
+  if(!u) return false;
+  if(u.role==='hr') return true;
+  if(u.role!=='manager') return false;
+  const emp=empById(r.employeeId); if(!emp) return false;
+  if(emp.managerId===u.id) return true;
+  if(emp.delegateManagerId===u.id && emp.managerId && isOnLeaveToday(emp.managerId)) return true;
+  return false;
+}
+function viaDelegation(u,r){
+  if(!u||u.role!=='manager') return false;
+  const emp=empById(r.employeeId); if(!emp) return false;
+  return emp.delegateManagerId===u.id && emp.managerId && isOnLeaveToday(emp.managerId);
+}
+
+function normalize(d){
+  const base={settings:defaultSettings(),employees:[],requests:[],audit:[]};
+  if(!d||typeof d!=='object') return base;
+  const settings={...base.settings,...(d.settings||{})};
+  settings.leaveTypes=(Array.isArray(settings.leaveTypes)&&settings.leaveTypes.length)
+    ? settings.leaveTypes.map(t=>({color:PALETTE[0],allowance:0,countsWeekends:false,sexRestriction:null,accrualRate:'annual',carryoverCap:0,proRateFromJoinDate:false,name:'Leave',...t,id:t.id||uid()}))
+    : base.settings.leaveTypes;
+  settings.holidays=Array.isArray(settings.holidays)?settings.holidays.map(h=>({id:h.id||uid(),date:h.date,name:h.name||'Holiday'})):[];
+  settings.year=Number(settings.year)||new Date().getFullYear();
+  return {settings,
+    employees:Array.isArray(d.employees)?d.employees.map(e=>({status:'active',overrides:{},sex:'',role:'employee',managerId:null,delegateManagerId:null,username:'',pwHash:'',pwSalt:'',roleTitle:'',...e,id:e.id||uid()})):[],
+    requests:Array.isArray(d.requests)?d.requests.map(r=>({status:'pending',days:1,durationType:'full',hoursPerDay:8,attachments:[],...r,id:r.id||uid()})):[],
+    audit:Array.isArray(d.audit)?d.audit:[]};
+}
+
+function seedSample(){
+  const t=new Date(), off=n=>toISO(new Date(t.getFullYear(),t.getMonth(),t.getDate()+n));
+  const types=defaultSettings().leaveTypes;
+  const days=(f,to,tid)=>workingDays(f,to,types.find(x=>x.id===tid).countsWeekends);
+  const mk=(name,sex,role,dept,roleTitle,email,joined,overrides)=>{
+    const u=name.split(' ')[0].toLowerCase();
+    const e={id:uid(),name,sex,role,department:dept,roleTitle,email,joined,status:'active',overrides:overrides||{},username:u,managerId:null,delegateManagerId:null,pwHash:'',pwSalt:''};
+    setPassword(e,DEMO_PASSWORD); return e;
+  };
+  const chloe =mk('Chloe Tan','female','hr','People','People Ops Lead','chloe@northwind.io','2020-01-20');
+  const bruno =mk('Bruno Silva','male','manager','Engineering','Engineering Manager','bruno@northwind.io','2019-09-01');
+  const amara =mk('Amara Okafor','female','employee','Design','Product Designer','amara@northwind.io','2021-03-15',{annual:23});
+  const dmitri=mk('Dmitri Novak','male','employee','Data','Data Analyst','dmitri@northwind.io','2024-06-10',{annual:12});
+  const farah =mk('Farah El-Sayed','female','employee','Finance','Finance Manager','farah@northwind.io','2018-11-05');
+  const jonah =mk('Jonah Kim','male','employee','Support','Support Specialist','jonah@northwind.io','2022-07-18');
+  bruno.managerId=chloe.id; amara.managerId=bruno.id; dmitri.managerId=bruno.id; jonah.managerId=bruno.id;
+  amara.delegateManagerId=chloe.id; dmitri.delegateManagerId=chloe.id; jonah.delegateManagerId=chloe.id;
+  const emps=[amara,bruno,chloe,dmitri,farah,jonah];
+  const R=(e,tid,f,to,st,reason,off2)=>({id:uid(),employeeId:e,typeId:tid,from:f,to:to,days:days(f,to,tid),durationType:'full',hoursPerDay:8,status:st,reason:reason||'',createdAt:off(off2??-3),decidedAt:st!=='pending'?off((off2??-3)+1):null,note:'',attachments:[]});
+  const settings=defaultSettings(); settings.sampleSeeded=true;
+  return {settings,employees:emps,audit:[],requests:[
+    R(amara.id,'annual',off(-12),off(-8),'approved','Family trip',-20),
+    R(bruno.id,'annual',off(-1),off(2),'approved','Long weekend away',-9),
+    R(dmitri.id,'personal',off(6),off(6),'approved','Moving day',-4),
+    R(chloe.id,'sick',off(-21),off(-19),'approved','',-24),
+    R(amara.id,'annual',off(9),off(13),'pending','Beach holiday',-2),
+    R(farah.id,'annual',off(3),off(4),'pending','Attending a wedding',-1),
+    R(jonah.id,'annual',off(-30),off(-28),'rejected','Coverage needed that week',-34),
+    R(farah.id,'maternity',off(10),off(39),'approved','First baby on the way',-5),
+    R(bruno.id,'paternity',off(20),off(26),'pending','',0),
+    R(jonah.id,'personal',off(5),off(5),'pending','Appointment',-1),
+    R(amara.id,'sick',off(-60),off(-58),'approved','Flu',-62),
+    R(bruno.id,'sick',off(-100),off(-99),'approved','',-102),
+    R(dmitri.id,'sick',off(-45),off(-44),'approved','',-47),
+  ]};
+}
+
+function save(){
+  const payload={meta:{app:'LeaveDesk',version:5,savedAt:new Date().toISOString()},settings:state.settings,employees:state.employees,requests:state.requests,audit:state.audit||[]};
+  const json=JSON.stringify(payload);
+  try{localStorage.setItem(LS_KEY,json)}catch(e){
+    toast('Storage full — large attachments may not persist. Export a backup and consider removing attachments.','err');
+  }
+  lastSaved=new Date();
+  $('#saveStamp').textContent='Saved · '+lastSaved.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+}
+function exportJSON(){
+  const payload={meta:{app:'LeaveDesk',version:5,exportedAt:new Date().toISOString()},settings:state.settings,employees:state.employees,requests:state.requests,audit:state.audit||[]};
+  const name=(state.settings.companyName.toLowerCase().replace(/[^a-z0-9]+/g,'-')||'workspace')+'-leave-'+today()+'.ldesk';
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));
+  a.download=name; a.click(); URL.revokeObjectURL(a.href);
+  toast('Exported '+name,'ok');
+}
+function handleImportFile(file){
+  if(!file) return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    let parsed;
+    try{parsed=JSON.parse(rd.result)}catch(e){toast('That file isn\u2019t valid JSON.','err');return}
+    const next=normalize(parsed);
+    confirmModal('Import workspace?',
+      `<p style="font-size:13.5px;line-height:1.6">This file contains <b>${next.employees.length}</b> employees, <b>${next.requests.length}</b> requests and <b>${next.settings.leaveTypes.length}</b> leave types for <b>${esc(next.settings.companyName)}</b>.<br><br>It will <b>replace</b> your current workspace and sign everyone out.</p>`,
+      'Import',()=>{
+        state=next; logAudit('import_workspace',null,null,{employees:next.employees.length,requests:next.requests.length}); save(); clearSession(); ui.month=new Date(); ui.month.setDate(1);
+        renderRoot(); toast('Workspace imported ✔','ok');
+      });
+  };
+  rd.readAsText(file);
+}
+
+function toast(msg,kind='',ms=3400){
+  const el=document.createElement('div');
+  el.className='toast '+kind; el.textContent=msg;
+  $('#toasts').appendChild(el);
+  setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),320)},ms);
+}
+const modalStack=[]; let currentOpener=null;
+function showModal(html,wide){ const box=$('#modalBox'); box.classList.toggle('wide',wide); box.innerHTML=html; box.scrollTop=0; $('#overlay').classList.add('open'); }
+function openModal(html,wide=false,opener=null){ if($('#overlay').classList.contains('open')&&currentOpener)modalStack.push(currentOpener); currentOpener=opener; showModal(html,wide); }
+function closeModal(){ if(modalStack.length){const prev=modalStack.pop();currentOpener=null;prev();}else{currentOpener=null;$('#overlay').classList.remove('open');} }
+function hardCloseModal(){modalStack.length=0;currentOpener=null;$('#overlay').classList.remove('open')}
+function animateModalBars(){ requestAnimationFrame(()=>requestAnimationFrame(()=> $$('#modalBox .bar>i, #modalBox .chart-bar i').forEach(i=>i.style.width=(i.dataset.w||0)+'%'))); }
+function confirmModal(title,body,label,onYes){
+  openModal(`<h3>${esc(title)}</h3><div class="msub" style="margin-top:10px">${body}</div>
+    <div class="mactions"><button class="btn" id="cmNo">Cancel</button><button class="btn btn-ink" id="cmYes">${esc(label)}</button></div>`);
+  $('#cmNo').onclick=closeModal;
+  $('#cmYes').onclick=()=>{closeModal();onYes()};
+}
+
+const MAIL_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>';
+function openAboutModal(){
+  const year=new Date().getFullYear();
+  const licenseText=`MIT License\n\nCopyright (c) ${year} Phillip De Suze\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.`;
+  openModal(`
+    <div class="about-head">
+      <svg width="44" height="44" viewBox="0 0 34 34" aria-hidden="true">
+        <rect x="1" y="4" width="32" height="29" rx="7" fill="#3f6de0"/><rect x="1" y="4" width="32" height="9" rx="4.5" fill="#16202e"/>
+        <rect x="8" y="1" width="4" height="8" rx="2" fill="#eef2f8"/><rect x="22" y="1" width="4" height="8" rx="2" fill="#eef2f8"/>
+        <circle cx="17" cy="23" r="6" fill="#ffffff"/><path d="M17 17.5v2M22.5 23h-2M17 28.5v-2M11.5 23h2" stroke="#3f6de0" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <div style="flex:1;min-width:0"><h3 style="margin-bottom:0">About LeaveDesk</h3><p class="brand-co">Single-file HR leave manager</p></div>
+    </div>
+    <div class="about-creator">
+      <span class="av av-lg" style="background:${hashColor('Phillip De Suze')}">${esc(initials('Phillip De Suze'))}</span>
+      <div class="about-creator-info"><b>Created by Phillip De Suze</b><span class="ac-role">Developer · Maintainer</span>
+        <a class="mailpill" href="mailto:pdesuze@outlook.com?subject=${encodeURIComponent('LeaveDesk — support / upgrade request')}">${MAIL_ICON} pdesuze@outlook.com</a></div>
+    </div>
+    <span class="klabel">Contact for</span>
+    <div class="about-uses" style="margin-top:8px">
+      <div><b>Support</b><span>Questions, bug reports, installation help.</span></div>
+      <div><b>Changes</b><span>Custom tweaks, workflow changes, integrations.</span></div>
+      <div><b>Upgrades</b><span>New features, new leave types, deployment.</span></div>
+    </div>
+    <span class="klabel">License</span>
+    <div class="license-block" style="margin-top:8px"><span class="lh">MIT License</span>${esc(licenseText)}</div>
+    <div class="license-meta"><span>Permissive open-source</span><span>Commercial use allowed</span><span>Modification allowed</span></div>
+    <div class="mactions">
+      <a class="btn btn-primary btn-sm" href="mailto:pdesuze@outlook.com?subject=${encodeURIComponent('LeaveDesk — getting in touch')}">✉ Contact Phillip</a>
+      <button class="btn btn-sm" id="about-close">Close</button>
+    </div>`,false,()=>openAboutModal());
+  $('#about-close').onclick=closeModal;
+}
+
+const TAB_LABELS={myleave:'My Leave',approvals:'Approvals',dashboard:'Dashboard',requests:'Requests',team:'Team',reports:'Reports',calendar:'Calendar',settings:'Settings &amp; Data'};
+const ROLE_TABS={employee:['myleave','calendar'],manager:['myleave','approvals','team','reports','calendar'],hr:['dashboard','requests','team','reports','calendar','settings']};
+const DEFAULT_TAB={employee:'myleave',manager:'approvals',hr:'dashboard'};
+
+function buildNav(me){
+  const tabs=ROLE_TABS[me.role]||ROLE_TABS.employee;
+  $('#nav').innerHTML=tabs.map(t=>`<button data-tab="${t}">${TAB_LABELS[t]}${
+    t==='approvals'?'<span class="nb hide" id="apprBadge">0</span>':''}${
+    t==='requests'?'<span class="nb hide" id="pendBadge">0</span>':''}</button>`).join('')
+    +'<span class="tab-ind" id="tabIndicator"></span>';
+}
+function renderRoot(){
+  const me=currentUser(); hardCloseModal();
+  if(!me){ $('#appShell').classList.add('hide'); $('#authScreen').classList.remove('hide'); renderAuth(); }
+  else{ $('#authScreen').classList.add('hide'); $('#appShell').classList.remove('hide'); buildNav(me); setTab(DEFAULT_TAB[me.role]||'myleave'); renderTopbar(); }
+}
+function renderTopbar(){
+  const me=currentUser(); if(!me)return;
+  $('#brandCo').textContent=state.settings.companyName+' · FY '+state.settings.year;
+  $('#userBox').innerHTML=`<span class="userchip" title="Signed in as ${roleLabel(me.role)}">${avatarHTML(me.name,1)}
+    <span>${esc(me.name)}</span><span class="uc-role">${roleLabel(me.role)}</span></span>
+    <button class="tbtn" data-logout title="Sign out">Sign out</button>`;
+  const isHR=me.role==='hr';
+  $('#btnExport').classList.toggle('hide',!isHR);
+  $('#btnImport').classList.toggle('hide',!isHR);
+  $('#btnNewRequest').textContent=isHR?'+ New request':'Request leave';
+  const allPend=state.requests.filter(r=>r.status==='pending').length;
+  const pb=$('#pendBadge'); if(pb){pb.textContent=allPend;pb.classList.toggle('hide',!allPend)}
+  const myPend=state.requests.filter(r=>r.status==='pending'&&canApprove(me,r)).length;
+  const ab=$('#apprBadge'); if(ab){ab.textContent=myPend;ab.classList.toggle('hide',!myPend)}
+}
+function moveIndicator(){
+  const btn=$(`#nav [data-tab="${ui.tab}"]`), ind=$('#tabIndicator');
+  if(!btn)return; ind.style.width=btn.offsetWidth+'px'; ind.style.transform=`translateX(${btn.offsetLeft}px)`;
+}
+function setTab(name){
+  const me=currentUser(); if(!me)return;
+  const tabs=ROLE_TABS[me.role]||ROLE_TABS.employee;
+  if(!tabs.includes(name))name=tabs[0];
+  ui.tab=name;
+  $$('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===name));
+  $$('.view').forEach(v=>v.classList.toggle('on',v.id==='view-'+name));
+  renderActive(); moveIndicator();
+}
+function revealActive(){
+  $$('.view.on .reveal').forEach((el,i)=>setTimeout(()=>el.classList.add('in'),Math.min(i*80,420)));
+  requestAnimationFrame(()=>$$('.view.on .bar>i, .view.on .chart-bar i').forEach(i=>i.style.width=(i.dataset.w||0)+'%'));
+  $$('.view.on [data-count]').forEach(countUp);
+}
+function countUp(el){
+  const target=+el.dataset.count,dur=750,st=performance.now();
+  (function f(now){const p=Math.min(1,(now-st)/dur),e=1-Math.pow(1-p,3);
+    el.textContent=Math.round(target*e).toLocaleString(); if(p<1)requestAnimationFrame(f)})(st);
+}
+function renderActive(){
+  ({dashboard:renderDashboard,requests:renderRequests,team:renderTeam,calendar:renderCalendar,
+    settings:renderSettings,myleave:renderMyLeave,approvals:renderApprovals,reports:renderReports})[ui.tab]();
+  revealActive();
+}
+function renderAll(){renderTopbar();renderActive()}
+
+function renderAuth(){
+  const accounts=state.employees.filter(e=>e.username).sort((a,b)=>['hr','manager','employee'].indexOf(a.role)-['hr','manager','employee'].indexOf(b.role));
+  const co=esc(state.settings.companyName);
+  const brand=`<div class="auth-brand">
+    <svg width="42" height="42" viewBox="0 0 34 34" aria-hidden="true">
+      <rect x="1" y="4" width="32" height="29" rx="7" fill="#3f6de0"/><rect x="1" y="4" width="32" height="9" rx="4.5" fill="#16202e"/>
+      <rect x="8" y="1" width="4" height="8" rx="2" fill="#eef2f8"/><rect x="22" y="1" width="4" height="8" rx="2" fill="#eef2f8"/>
+      <circle cx="17" cy="23" r="6" fill="#ffffff"/><path d="M17 17.5v2M22.5 23h-2M17 28.5v-2M11.5 23h2" stroke="#3f6de0" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+    <div><span class="brand-name">LeaveDesk</span><span class="brand-co">${co}</span></div></div>`;
+  if(!accounts.length){
+    const unlinked=state.employees.filter(e=>!e.username);
+    $('#authInner').innerHTML=`${brand}
+      <h3 style="margin:16px 0 4px">Set up HR administration</h3>
+      <p class="msub">No sign-in accounts exist yet. Create the first HR admin to manage the system.</p>
+      <form id="setupForm">
+        <div class="field"><label>Full name</label><input id="su-name" required placeholder="e.g. Riley Morgan"></div>
+        ${unlinked.length?`<div class="field"><label>Link to existing person (optional)</label>
+          <select id="su-link"><option value="">— create a new person —</option>${unlinked.map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join('')}</select></div>`:''}
+        <div class="field"><label>Username</label><input id="su-user" required autocomplete="username"></div>
+        <div class="mrow">
+          <div class="field"><label>Password</label><input id="su-pass" type="password" required minlength="4" autocomplete="new-password"></div>
+          <div class="field"><label>Confirm</label><input id="su-pass2" type="password" required minlength="4"></div>
+        </div>
+        <div id="su-err" class="auth-err hide"></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" type="submit">Create HR admin &amp; sign in</button>
+      </form>
+      <p class="auth-note">Local sign-in · accounts &amp; data live only in this browser and your .ldesk backups.</p>
+      <p class="auth-about"><span class="foot-about" data-about>About LeaveDesk</span> · MIT License</p>`;
+    $('#setupForm').addEventListener('submit',ev=>{
+      ev.preventDefault();
+      const err=m=>{const el=$('#su-err');el.textContent=m;el.classList.remove('hide');
+        $('.auth-card').classList.remove('shake');void $('.auth-card').offsetWidth;$('.auth-card').classList.add('shake')};
+      const name=$('#su-name').value.trim(), username=$('#su-user').value.trim().toLowerCase(),
+            pw=$('#su-pass').value, pw2=$('#su-pass2').value, link=$('#su-link')?$('#su-link').value:'';
+      if(pw!==pw2)return err('Passwords don\u2019t match.');
+      if(pw.length<4)return err('Password must be at least 4 characters.');
+      if(state.employees.some(x=>x.username===username))return err('That username is taken.');
+      let e=link?empById(link):null;
+      if(!e){e={id:uid(),name,sex:'',role:'hr',department:'People',roleTitle:'HR Administrator',email:'',joined:today(),status:'active',overrides:{},managerId:null,delegateManagerId:null,pwHash:'',pwSalt:''};state.employees.push(e)}
+      Object.assign(e,{username,role:'hr',name:e.name||name});
+      setPassword(e,pw); logAudit('add_employee',e.id,null,{name:e.name,role:'hr'}); save(); saveSession(e.id);
+      renderRoot(); toast(`Welcome, ${e.name.split(' ')[0]} — you\u2019re signed in as HR admin.`,'ok');
+    });
+  }else{
+    $('#authInner').innerHTML=`${brand}
+      <h3 style="margin:16px 0 4px">Sign in</h3>
+      <p class="msub">Employees request leave · managers approve · HR administers.</p>
+      <form id="loginForm">
+        <div class="field"><label>Username</label><input id="lg-user" required autocomplete="username"></div>
+        <div class="field"><label>Password</label><input id="lg-pass" type="password" required autocomplete="current-password"></div>
+        <div id="lg-err" class="auth-err hide"></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" type="submit">Sign in</button>
+      </form>
+      <span class="klabel" style="display:block;margin:18px 0 2px">Accounts in this workspace</span>
+      ${accounts.map(e=>`<button type="button" class="acct" data-filluser="${esc(e.username)}">
+        ${avatarHTML(e.name,1)}<span class="an">${esc(e.name)}</span>
+        <span class="au">@${esc(e.username)}</span>
+        <span style="margin-left:auto">${rolePill(e.role)}</span></button>`).join('')}
+      ${state.settings.sampleSeeded?`<p class="auth-note">Sample workspace — every account\u2019s password is <b>${DEMO_PASSWORD}</b>.</p>`:''}
+      <p class="auth-note">Local sign-in · accounts &amp; data live only in this browser and your .ldesk backups.</p>
+      <p class="auth-about"><span class="foot-about" data-about>About LeaveDesk</span> · MIT License · <span class="foot-about" data-resetpw>Reset all passwords to ${DEMO_PASSWORD}</span></p>`;
+    $('#loginForm').addEventListener('submit',ev=>{
+      ev.preventDefault();
+      const acc=state.employees.find(e=>e.username&&e.username.toLowerCase()===$('#lg-user').value.trim().toLowerCase());
+      if(acc&&verifyPw(acc,$('#lg-pass').value)){
+        saveSession(acc.id); renderRoot();
+        toast(`Welcome back, ${acc.name.split(' ')[0]} — signed in as ${roleLabel(acc.role)}.`,'ok');
+      }else{
+        const el=$('#lg-err');el.textContent='Invalid username or password.';el.classList.remove('hide');
+        $('.auth-card').classList.remove('shake');void $('.auth-card').offsetWidth;$('.auth-card').classList.add('shake');
+      }
+    });
+    $$('[data-filluser]').forEach(b=>b.addEventListener('click',()=>{ $('#lg-user').value=b.dataset.filluser;$('#lg-pass').value='';$('#lg-pass').focus(); }));
+  }
+}
+
+function attChip(r){
+  if(!r.attachments||!r.attachments.length) return '';
+  return `<a class="attflag" data-att="${r.id}" title="View attachments">📎 ${r.attachments.length}</a>`;
+}
+function openAttachmentsModal(id){
+  const r=state.requests.find(x=>x.id===id); if(!r||!r.attachments||!r.attachments.length)return;
+  const e=empById(r.employeeId), tp=typeById(r.typeId);
+  const rows=r.attachments.map((a,i)=>`
+    <div class="prow">
+      <span style="font-size:20px">📄</span>
+      <div style="flex:1;min-width:0"><b style="font-size:13.5px">${esc(a.name)}</b>
+        <div class="mono" style="font-size:10.5px;color:var(--text-soft)">${esc(a.type||'file')} · ${fmtNum(a.size/1024)} KB</div></div>
+      <a class="btn btn-sm" href="${a.data}" download="${esc(a.name)}">⤓ Download</a>
+    </div>`).join('');
+  openModal(`<h3>Attachments</h3>
+    <p class="msub">${e?esc(e.name):''} · ${esc(tp.name)} · ${rangeLabel(r.from,r.to)}</p>
+    ${rows}
+    <div class="mactions"><button class="btn btn-sm" id="att-close">Close</button></div>`,false,()=>openAttachmentsModal(id));
+  $('#att-close').onclick=closeModal;
+}
+
+function balanceCardsHTML(e){
+  const y=state.settings.year;
+  const cards=state.settings.leaveTypes
+    .filter(tp=>isEligible(e,tp)&&(allowanceFor(e,tp.id)>0||usedDays(e.id,tp.id)>0))
+    .map(tp=>{
+      const allow=effectiveAllowance(e,tp,y),used=usedDays(e.id,tp.id),left=allow-used;
+      const pct=allow>0?Math.min(100,used/allow*100):100;
+      return `<div class="pcard" style="--pc:${tp.color}">
+        <div class="pc-top"><span class="pill" style="--pc:${tp.color}">${esc(tp.name)}</span>
+          <b class="${left<0?'neg':''}">${left<0?'−'+fmtNum(Math.abs(left)):fmtNum(left)}d left</b></div>
+        <div class="bar"><i data-w="${pct}" style="background:${left<0?'var(--danger)':tp.color}"></i></div>
+        <div class="pc-meta">${fmtNum(used)} of ${fmtNum(allow)} used · FY ${y}${tp.accrualRate==='monthly'?' · accrues monthly':''}</div></div>`;
+    }).join('');
+  return cards||'<div class="pnone">No tracked leave types for this person.</div>';
+}
+function reqRowHTML(r,cancelable){
+  const tp=typeById(r.typeId);
+  const durMeta=r.durationType==='half'?' · half-days':(r.durationType==='hours'?` · ${fmtNum(r.hoursPerDay)}h/day`:'');
+  return `<div class="prow">${typePill(tp)}
+    <span class="mono" style="font-size:12px">${rangeLabel(r.from,r.to)}</span>
+    <span class="mono" style="font-size:11px;color:var(--text-soft)">${fmtDays(r.days)}${durMeta}</span>
+    ${r.reason?`<span class="reason" title="${esc(r.reason)}">${esc(r.reason)}</span>`:''}${attChip(r)}
+    <span style="margin-left:auto;display:flex;align-items:center;gap:8px">
+      ${cancelable&&r.status==='pending'?`<button class="icon-btn no" data-cancelreq="${r.id}" title="Cancel this request"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`:''}
+      <span class="badge ${r.status}"><i></i>${r.status}</span></span></div>`;
+}
+function historySectionsHTML(e,opts={}){
+  const t=today();
+  const reqs=state.requests.filter(r=>r.employeeId===e.id);
+  const current=reqs.filter(r=>r.status!=='rejected'&&r.from<=t&&r.to>=t);
+  const upcoming=reqs.filter(r=>r.from>t&&r.status!=='rejected').sort((a,b)=>a.from.localeCompare(b.from));
+  const past=reqs.filter(r=>r.to<t).sort((a,b)=>b.from.localeCompare(a.from));
+  const section=(label,arr)=>{
+    const sum=arr.reduce((s,r)=>s+r.days,0);
+    return `<span class="klabel psec">${label} <span style="opacity:.7">(${arr.length}${arr.length?` · ${fmtDays(sum)}`:''})</span></span>`
+      +(arr.length?arr.map(r=>reqRowHTML(r,opts.cancel)).join(''):'<div class="pnone">Nothing here.</div>');
+  };
+  return section('Currently on leave',current)+section('Upcoming',upcoming)+section('Past',past);
+}
+
+function openOnLeaveTodayModal(){
+  const t=today();
+  const hits=state.requests.filter(r=>r.status==='approved'&&r.from<=t&&r.to>=t).sort((a,b)=>a.to.localeCompare(b.to));
+  const rows=hits.map(r=>{
+    const e=empById(r.employeeId); if(!e)return''; const tp=typeById(r.typeId);
+    return `<div class="prow" data-profile="${e.id}" title="View ${esc(e.name)}\u2019s profile">
+      ${avatarHTML(e.name,1)}<b style="font-size:13.5px">${esc(e.name)}</b> ${typePill(tp)}
+      <span class="mono" style="font-size:12px">${rangeLabel(r.from,r.to)}</span>
+      <span style="margin-left:auto" class="badge approved"><i></i>back after ${fmt(r.to)}</span></div>`;
+  }).join('');
+  const people=[...new Set(hits.map(r=>r.employeeId))].length;
+  openModal(`<h3>On leave today</h3>
+    <p class="msub">${fmt(t,{weekday:'long',month:'long',day:'numeric'})} · ${people} ${people===1?'person':'people'} out on ${hits.length} active absence${hits.length===1?'':'s'}.</p>
+    ${rows||'<div class="empty"><span class="glyph">☀</span><p>Everyone is in today.</p></div>'}
+    <div class="mactions"><button class="btn btn-sm" id="ot-close">Close</button></div>`,false,()=>openOnLeaveTodayModal());
+  $('#ot-close').onclick=closeModal;
+}
+function openDaysBookedModal(){
+  const y=state.settings.year;
+  const approved=state.requests.filter(r=>r.status==='approved'&&inYear(r));
+  const total=approved.reduce((s,r)=>s+r.days,0);
+  const byType={},byEmp={};
+  approved.forEach(r=>{
+    byType[r.typeId]=byType[r.typeId]||{days:0,count:0,emps:new Set()};
+    byType[r.typeId].days+=r.days; byType[r.typeId].count++; byType[r.typeId].emps.add(r.employeeId);
+    byEmp[r.employeeId]=(byEmp[r.employeeId]||0)+r.days;
+  });
+  const typeRows=Object.entries(byType).sort((a,b)=>b[1].days-a[1].days).map(([tid,v])=>{
+    const tp=typeById(tid), pct=total?Math.round(v.days/total*100):0;
+    return `<div class="prow">${typePill(tp)}
+      <div class="bar" style="max-width:200px"><i data-w="${pct}" style="background:${tp.color}"></i></div>
+      <span class="mono" style="font-size:12px;margin-left:auto"><b>${fmtNum(v.days)}d</b> · ${v.count} req · ${pct}%</span></div>`;
+  }).join('');
+  const empRows=Object.entries(byEmp).sort((a,b)=>b[1]-a[1]).map(([eid,d])=>{
+    const e=empById(eid); if(!e)return'';
+    return `<div class="prow" data-profile="${e.id}">${avatarHTML(e.name,1)}<b style="font-size:13.5px">${esc(e.name)}</b>
+      <span class="mono" style="font-size:12px;margin-left:auto">${fmtDays(d)}</span></div>`;
+  }).join('');
+  openModal(`<h3>Days booked · FY ${y}</h3>
+    <p class="msub">${fmtNum(total)} approved day${total===1?'':'s'} across ${approved.length} request${approved.length===1?'':'s'}.</p>
+    ${total?`<span class="klabel">By leave type</span>${typeRows}<span class="klabel psec">By employee</span>${empRows}`
+      :'<div class="empty"><span class="glyph">⌀</span><p>No approved leave in this fiscal year yet.</p></div>'}
+    <div class="mactions"><button class="btn btn-sm" id="dbm-close">Close</button></div>`,true,()=>openDaysBookedModal());
+  animateModalBars();
+  $('#dbm-close').onclick=closeModal;
+}
+function tileAction(k){
+  if(k==='pending'){ui.filter='pending';setTab('requests');}
+  else if(k==='team'){setTab('team');}
+  else if(k==='ontoday'){openOnLeaveTodayModal();}
+  else if(k==='booked'){openDaysBookedModal();}
+}
+
+function renderMyLeave(){
+  const me=currentUser(), y=state.settings.year, t=today();
+  const reqs=state.requests.filter(r=>r.employeeId===me.id);
+  const daysUsed=reqs.filter(r=>r.status==='approved'&&inYear(r)).reduce((s,r)=>s+r.days,0);
+  const daysPending=reqs.filter(r=>r.status==='pending'&&inYear(r)).reduce((s,r)=>s+r.days,0);
+  const upcoming=reqs.filter(r=>r.from>t&&r.status!=='rejected').sort((a,b)=>a.from.localeCompare(b.from));
+  const next=upcoming.find(r=>r.status==='approved')||upcoming[0];
+  $('#view-myleave').innerHTML=`
+    <div class="panel reveal">
+      <div class="panel-head"><h2>My leave</h2><button class="btn btn-primary btn-sm" data-myreq>+ Request leave</button></div>
+      <div class="panel-body">
+        <div class="pstats" style="margin-top:0">
+          <div><span class="klabel">Approved · FY ${y}</span><b>${fmtNum(daysUsed)}d</b></div>
+          <div><span class="klabel">Pending</span><b>${fmtNum(daysPending)}d</b></div>
+          <div><span class="klabel">Next leave</span><b>${next?fmt(next.from):'—'}</b></div>
+        </div>
+        <span class="klabel">Balances · FY ${y}</span>
+        <div class="pcards" style="margin-top:8px">${balanceCardsHTML(me)}</div>
+        ${historySectionsHTML(me,{cancel:true})}
+      </div>
+    </div>`;
+}
+
+function renderApprovals(){
+  const me=currentUser();
+  const pend=state.requests.filter(r=>r.status==='pending'&&canApprove(me,r)).sort((a,b)=>a.createdAt.localeCompare(b.createdAt));
+  const done=state.requests.filter(r=>r.status!=='pending'&&canApprove(me,r)).sort((a,b)=>(b.decidedAt||'').localeCompare(a.decidedAt||'')).slice(0,8);
+  const rows=pend.map(r=>{
+    const e=empById(r.employeeId); if(!e)return''; const tp=typeById(r.typeId);
+    const allow=effectiveAllowance(e,tp,state.settings.year),used=usedDays(e.id,r.typeId),after=allow-used-r.days;
+    const deleg=viaDelegation(me,r)?'<span class="chip deleg">delegated</span>':'';
+    return `<div class="qrow" data-profile="${e.id}">${avatarHTML(e.name)}
+      <div class="qinfo"><div class="qn">${esc(e.name)} ${typePill(tp)}${deleg}${mismatch(e,tp)?'<span class="warnflag">eligibility</span>':''}${attChip(r)}</div>
+      <div class="qd">${esc(e.department||'')} · ${rangeLabel(r.from,r.to)} · ${fmtDays(r.days)}${r.durationType==='half'?' · half-days':(r.durationType==='hours'?` · ${fmtNum(r.hoursPerDay)}h/day`:'')} ·
+        ${after<0?`<span style="color:var(--danger-tx)">balance after: ${fmtNum(after)}</span>`:`balance after: ${fmtNum(after)} of ${fmtNum(allow)}`}</div></div>
+      <div class="qacts">
+        <button class="icon-btn ok" data-approve="${r.id}" title="Approve"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M4 12l5 5L20 7"/></svg></button>
+        <button class="icon-btn no" data-reject="${r.id}" title="Reject"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div></div>`;
+  }).join('');
+  const doneRows=done.map(r=>{
+    const e=empById(r.employeeId); if(!e)return''; const tp=typeById(r.typeId);
+    return `<div class="prow" data-profile="${e.id}">${avatarHTML(e.name,1)} ${typePill(tp)}
+      <span class="mono" style="font-size:12px">${rangeLabel(r.from,r.to)}</span>
+      <span class="mono" style="font-size:11px;color:var(--text-soft)">${fmtDays(r.days)}</span>${attChip(r)}
+      <span style="margin-left:auto" class="badge ${r.status}"><i></i>${r.status}</span></div>`;
+  }).join('');
+  $('#view-approvals').innerHTML=`
+    <div class="panel reveal">
+      <div class="panel-head"><h2>Approvals</h2><span class="chip">${pend.length} pending · ${me.role==='hr'?'all requests':'your direct reports'}</span></div>
+      <div class="panel-body">
+        ${rows||'<div class="empty"><span class="glyph">✷</span><p>Inbox zero — nothing waiting for your decision.</p></div>'}
+        ${doneRows?`<span class="klabel psec">Recent decisions</span>${doneRows}`:''}
+      </div>
+    </div>`;
+}
+
+function renderDashboard(){
+  const t=today(),y=state.settings.year;
+  const active=state.employees.filter(e=>e.status!=='left');
+  const pending=state.requests.filter(r=>r.status==='pending').sort((a,b)=>a.createdAt.localeCompare(b.createdAt));
+  const approved=state.requests.filter(r=>r.status==='approved');
+  const daysBooked=approved.filter(inYear).reduce((s,r)=>s+r.days,0);
+  const onToday=[...new Set(approved.filter(r=>r.from<=t&&r.to>=t).map(r=>r.employeeId))].map(empById).filter(Boolean);
+  const upcoming=approved.filter(r=>r.from>t).sort((a,b)=>a.from.localeCompare(b.from)).slice(0,6);
+  const hour=new Date().getHours();
+  const greet=hour<12?'Good morning':hour<18?'Good afternoon':'Good evening';
+  let heroSub;
+  if(onToday.length===0&&pending.length===0) heroSub='Nobody is out today and the approval queue is clear. A quiet ledger.';
+  else heroSub=[onToday.length?`${onToday.length} ${onToday.length===1?'person is':'people are'} on leave today`:null,
+    pending.length?`${pending.length} request${pending.length===1?'':'s'} awaiting a decision`:null].filter(Boolean).join(' · ')+'. ';
+  const avs=onToday.slice(0,6).map(e=>`<span class="av" data-profile="${e.id}" style="background:${hashColor(e.name)}" title="${esc(e.name)} — view profile">${esc(initials(e.name))}</span>`).join('')
+    +(upcoming.length?`<span class="h-chip">+ ${upcoming.length} upcoming</span>`:'');
+  const tiles=[
+    {k:'pending',l:'Pending approvals',v:pending.length,c:'#d9930d',h:pending.length?'waiting in the queue':'inbox zero',go:'open queue →'},
+    {k:'ontoday',l:'On leave today',v:onToday.length,c:'#0f8a8a',h:fmt(t,{weekday:'long',month:'long',day:'numeric'}),go:'who\u2019s out →'},
+    {k:'booked',l:'Days booked · '+y,v:Math.round(daysBooked*10)/10,c:'#3e63c4',h:'across approved requests',go:'breakdown →'},
+    {k:'team',l:'Active team',v:active.length,c:'#64748b',h:state.settings.companyName,go:'view team →'},
+  ].map(x=>`<div class="tile reveal" data-tile="${x.k}" role="button" tabindex="0" title="Click to expand" style="--ac:${x.c}">
+      <span class="klabel">${x.l}</span><b data-count="${x.v}">0</b><div class="hint">${esc(x.h)}</div><span class="tile-hintgo">${x.go}</span></div>`).join('');
+  const queue=pending.length?pending.map(r=>{
+    const e=empById(r.employeeId); if(!e)return''; const tp=typeById(r.typeId);
+    return `<div class="qrow" data-profile="${e.id}">${avatarHTML(e.name,1)}
+      <div class="qinfo"><div class="qn">${esc(e.name)} ${typePill(tp)}${mismatch(e,tp)?'<span class="warnflag">eligibility</span>':''}${attChip(r)}</div>
+      <div class="qd">${esc(e.department||'')} · ${rangeLabel(r.from,r.to)} · ${fmtDays(r.days)}${overlapsOf(r).length?' <span class="warnflag">overlap</span>':''}</div></div>
+      <div class="qacts"><button class="icon-btn ok" data-approve="${r.id}" title="Approve"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M4 12l5 5L20 7"/></svg></button>
+      <button class="icon-btn no" data-reject="${r.id}" title="Reject"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div>`;
+  }).join(''):`<div class="empty"><span class="glyph">✷</span><p>Inbox zero — no leave requests waiting for approval.</p></div>`;
+  const up=upcoming.length?upcoming.map(r=>{
+    const e=empById(r.employeeId); if(!e)return''; const tp=typeById(r.typeId),d=fromISO(r.from);
+    return `<div class="urow" data-profile="${e.id}"><div class="db"><b>${d.getDate()}</b><span>${d.toLocaleDateString(undefined,{month:'short'})}</span></div>
+      <div class="uinfo"><div class="un">${esc(e.name)}</div><div class="ud">${rangeLabel(r.from,r.to)} · ${fmtDays(r.days)}</div></div>${typePill(tp)}</div>`;
+  }).join(''):`<div class="empty"><span class="glyph">☀</span><p>No approved time off coming up.</p></div>`;
+  const bars=active.map(e=>{
+    const segs=state.settings.leaveTypes.filter(tp=>allowanceFor(e,tp.id)>0||usedDays(e.id,tp.id)>0).map(tp=>{
+      const allow=effectiveAllowance(e,tp,y),used=usedDays(e.id,tp.id),left=allow-used;
+      const pct=allow>0?Math.min(100,used/allow*100):100;
+      return `<div class="bseg" title="${esc(tp.name)} — ${fmtNum(used)} of ${fmtNum(allow)} used"><div class="bar"><i data-w="${pct}" style="background:${left<0?'var(--danger)':tp.color}"></i></div>
+        <small class="${left<0?'neg':''}">${left<0?'−'+fmtNum(Math.abs(left)):fmtNum(left)}d</small></div>`;
+    }).join('');
+    return `<div class="brow" data-profile="${e.id}" title="View ${esc(e.name)}\u2019s profile"><span class="bname">${esc(e.name)}</span><div class="bbars">${segs||'<small class="mono" style="color:var(--text-soft)">no tracked types</small>'}</div></div>`;
+  }).join('');
+  $('#view-dashboard').innerHTML=`
+    <section class="hero reveal">
+      <div><div class="kicker">${esc(state.settings.companyName)} · Fiscal year ${y}</div>
+        <h1>${greet}.</h1><p class="sub">${esc(heroSub)}</p></div>
+      <div class="h-avs">${avs||'<span class="h-chip">everyone\u2019s at their desk</span>'}</div>
+    </section>
+    <div class="tiles">${tiles}</div>
+    <div class="grid-2">
+      <div class="panel reveal"><div class="panel-head"><h2>Approval queue</h2><span class="chip">${pending.length} open</span></div>
+        <div class="panel-body">${queue}</div></div>
+      <div class="stack">
+        <div class="panel reveal"><div class="panel-head"><h2>Coming up</h2></div><div class="panel-body">${up}</div></div>
+        <div class="panel reveal"><div class="panel-head"><h2>Remaining balances</h2><span class="chip">${y}</span></div>
+          <div class="panel-body">${bars||'<div class="empty"><p>Add people in the Team tab to start tracking balances.</p></div>'}</div></div>
+      </div>
+    </div>`;
+}
+
+function renderRequests(){
+  const counts={all:state.requests.length,pending:0,approved:0,rejected:0};
+  state.requests.forEach(r=>counts[r.status]!==undefined&&counts[r.status]++);
+  const chips=['all','pending','approved','rejected'].map(f=>
+    `<button class="fchip ${ui.filter===f?'on':''}" data-rfilter="${f}">${f}<span class="cnt">${counts[f]}</span></button>`).join('');
+  const pend=state.requests.filter(r=>r.status==='pending').sort((a,b)=>a.createdAt.localeCompare(b.createdAt));
+  const done=state.requests.filter(r=>r.status!=='pending').sort((a,b)=>(b.decidedAt||'').localeCompare(a.decidedAt||''));
+  const rows=[...pend,...done].filter(r=>ui.filter==='all'||r.status===ui.filter).map(r=>{
+    const e=empById(r.employeeId); if(!e)return''; const tp=typeById(r.typeId);
+    const actions=r.status==='pending'
+      ?`<button class="icon-btn ok" data-approve="${r.id}" title="Approve"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M4 12l5 5L20 7"/></svg></button>
+        <button class="icon-btn no" data-reject="${r.id}" title="Reject"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`
+      :`<button class="icon-btn" data-reopen="${r.id}" title="Reopen as pending"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button>`;
+    return `<tr class="rrow" data-profile="${e.id}" style="border-left-color:${tp.color}">
+      <td><div class="emp-cell">${avatarHTML(e.name,1)}<span class="nm">${esc(e.name)}</span></div></td>
+      <td>${typePill(tp)}</td>
+      <td><span class="mono" style="font-size:12.5px">${rangeLabel(r.from,r.to)}</span>
+        ${overlapsOf(r).length?'<span class="warnflag">overlap</span>':''}
+        ${mismatch(e,tp)?'<span class="warnflag">eligibility</span>':''}${attChip(r)}
+        ${r.reason?`<div class="reason" title="${esc(r.reason)}">${esc(r.reason)}</div>`:''}</td>
+      <td class="mono">${fmtDays(r.days)}${r.durationType==='half'?'<div style="font-size:10px;color:var(--text-soft)">half-days</div>':(r.durationType==='hours'?`<div style="font-size:10px;color:var(--text-soft)">${fmtNum(r.hoursPerDay)}h/day</div>`:'')}</td>
+      <td><span class="badge ${r.status}"><i></i>${r.status}</span></td>
+      <td style="white-space:nowrap"><div class="qacts">${actions}
+        <button class="icon-btn" data-delreq="${r.id}" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div></td></tr>`;
+  }).join('');
+  $('#view-requests').innerHTML=`
+    <div class="panel reveal"><div class="panel-head" style="flex-wrap:wrap">
+      <h2>Leave requests</h2><div style="display:flex;gap:8px;flex-wrap:wrap">${chips}</div></div>
+      <div class="tscroll"><table class="tbl"><thead><tr>
+        <th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Status</th><th></th></tr></thead>
+        <tbody>${rows||`<tr><td colspan="6"><div class="empty"><span class="glyph">⌀</span><p>No requests here yet. Hit “+ New request” to log one.</p></div></td></tr>`}</tbody>
+      </table></div></div>`;
+}
+
+function renderTeam(){
+  const me=currentUser();
+  const isHR=me.role==='hr', isMgr=me.role==='manager';
+  const list=isHR?state.employees:state.employees.filter(e=>e.managerId===me.id);
+  const rows=list.map(e=>{
+    const bars=state.settings.leaveTypes.filter(tp=>allowanceFor(e,tp.id)>0||usedDays(e.id,tp.id)>0).map(tp=>{
+      const allow=effectiveAllowance(e,tp,state.settings.year),used=usedDays(e.id,tp.id),left=allow-used;
+      const pct=allow>0?Math.min(100,used/allow*100):100;
+      return `<div class="bseg" title="${esc(tp.name)}: ${fmtNum(used)}/${fmtNum(allow)} used"><div class="bar"><i data-w="${pct}" style="background:${left<0?'var(--danger)':tp.color}"></i></div>
+        <small class="${left<0?'neg':''}">${fmtNum(left)}d</small></div>`;
+    }).join('');
+    return `<tr class="${e.status==='left'?'dim':''}" data-profile="${e.id}" title="View ${esc(e.name)}\u2019s profile" data-search="${esc((e.name+' '+(e.department||'')+' '+(e.roleTitle||'')).toLowerCase())}">
+      <td><div class="emp-cell">${avatarHTML(e.name)}<div><div class="nm">${esc(e.name)}</div><div class="em">${esc(e.email||'')}</div></div></div></td>
+      <td><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip">${esc(e.department||'—')}</span>
+        <span class="chip" title="Sex">${sexLabel(e.sex)}</span>${rolePill(e.role)}</div>
+        <div style="font-size:11.5px;color:var(--text-soft);margin-top:4px">${esc(e.roleTitle||'')}</div></td>
+      <td class="mono" style="font-size:12px">${e.joined?fmt(e.joined,{year:'numeric',month:'short',day:'numeric'}):'—'}</td>
+      <td style="min-width:280px"><div class="bbars">${bars||'<small class="mono" style="color:var(--text-soft)">—</small>'}</div></td>
+      <td style="white-space:nowrap">${isHR?`<div class="qacts">
+        <button class="icon-btn" data-editemp="${e.id}" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 20l4-1L20 7l-3-3L5 16l-1 4z"/></svg></button>
+        <button class="icon-btn no" data-delemp="${e.id}" title="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div>`:''}</td></tr>`;
+  }).join('');
+  $('#view-team').innerHTML=`
+    <div class="panel reveal"><div class="panel-head" style="flex-wrap:wrap">
+      <h2>${isHR?'Team':'My team'} <span class="chip" style="margin-left:6px">${list.length}</span></h2>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <input id="teamSearch" class="search-in" placeholder="Filter people…">
+        ${isHR?'<button class="btn btn-primary btn-sm" data-newemp>+ Add person</button>':''}</div></div>
+      ${isMgr?'<div class="panel-body" style="padding-bottom:0"><p class="storage-note" style="margin:0 0 12px">Your direct reports — profile edits, roles and sign-in accounts are managed by HR.</p></div>':''}
+      <div class="tscroll"><table class="tbl"><thead><tr>
+        <th>Person</th><th>Department</th><th>Joined</th><th>Balances (${state.settings.year})</th><th></th></tr></thead>
+        <tbody id="teamRows">${rows||`<tr><td colspan="5"><div class="empty"><span class="glyph">☺</span><p>${isMgr?'No direct reports assigned to you yet.':'No people yet — add your first teammate or import a .ldesk file.'}</p></div></td></tr>`}</tbody>
+      </table></div></div>`;
+  $('#teamSearch').addEventListener('input',e=>{
+    const q=e.target.value.trim().toLowerCase();
+    $$('#teamRows tr[data-search]').forEach(tr=>tr.classList.toggle('hide',q&&!tr.dataset.search.includes(q)));
+  });
+}
+
+function renderCalendar(){
+  const m=ui.month,y=m.getFullYear(),mo=m.getMonth(),t=today();
+  const ws=state.settings.weekStartsMonday;
+  const wdLabels=ws?['Mon','Tue','Wed','Thu','Fri','Sat','Sun']:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const firstIdx=ws?(new Date(y,mo,1).getDay()+6)%7:new Date(y,mo,1).getDay();
+  const dim=new Date(y,mo+1,0).getDate();
+  const active=state.requests.filter(r=>r.status==='approved'||r.status==='pending');
+  const totals={};
+  let cells='';
+  for(let i=0;i<firstIdx;i++) cells+='<div class="cell blank"></div>';
+  for(let d=1;d<=dim;d++){
+    const iso=`${y}-${pad(mo+1)}-${pad(d)}`,g=fromISO(iso).getDay(),wk=g===0||g===6;
+    const hol=isHoliday(iso), holName=holidayName(iso);
+    const hits=active.filter(r=>r.from<=iso&&r.to>=iso).sort((a,b)=>(a.status===b.status?0:a.status==='approved'?-1:1));
+    hits.filter(r=>r.status==='approved').forEach(r=>{totals[r.typeId]=(totals[r.typeId]||0)+(typeById(r.typeId).countsWeekends||(!wk&&!hol)?1:0)});
+    const holPill=hol?`<span class="cpill" style="--pc:var(--hol)" title="Public holiday">${esc(holName)}</span>`:'';
+    const pills=hits.slice(0,3).map(r=>{
+      const e=empById(r.employeeId),tp=typeById(r.typeId); if(!e)return'';
+      return `<span class="cpill ${r.status==='pending'?'pend':''}" title="${esc(e.name)} · ${esc(tp.name)} (${r.status})" style="--pc:${tp.color}">${esc(e.name.split(' ')[0])}</span>`;
+    }).join('');
+    const more=hits.length>3?`<span class="cmore">+${hits.length-3} more</span>`:'';
+    cells+=`<div class="cell ${wk?'weekend':''} ${hol?'holiday':''} ${iso===t?'today':''}"><span class="dnum">${d}</span>${holPill}${pills}${more}</div>`;
+  }
+  const legend=state.settings.leaveTypes.map(tp=>
+    `<span class="li"><i style="background:${tp.color}"></i>${esc(tp.name)} <b>${fmtNum(totals[tp.id]||0)}d</b></span>`).join('');
+  $('#view-calendar').innerHTML=`
+    <div class="panel reveal"><div class="panel-head cal-head">
+      <div class="cal-title">${m.toLocaleDateString(undefined,{month:'long',year:'numeric'})}</div>
+      <div class="cal-nav">
+        <button class="icon-btn" data-cal="-1" title="Previous month"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M14 5l-7 7 7 7"/></svg></button>
+        <button class="btn btn-sm" data-cal="0">Today</button>
+        <button class="icon-btn" data-cal="1" title="Next month"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M10 5l7 7-7 7"/></svg></button>
+      </div></div>
+      <div class="panel-body"><div class="wdrow">${wdLabels.map(w=>`<span>${w}</span>`).join('')}</div>
+      <div class="cal">${cells}</div>
+      <div class="legend" style="margin-top:16px">${legend}<span class="li"><i style="background:var(--hol)"></i>Public holiday</span>
+      <span class="li" style="margin-left:auto"><span class="chip">solid = approved · dashed = pending</span></span></div></div></div>`;
+}
+
+function renderSettings(){
+  const s=state.settings;
+  const trows=s.leaveTypes.map(tp=>`
+    <div class="trow" data-type="${tp.id}">
+      <button class="dot" data-cycledot style="background:${tp.color}" title="Cycle colour"></button>
+      <input class="tname" value="${esc(tp.name)}" aria-label="Leave type name">
+      <label class="tallow mono"><input type="number" class="tnum" min="0" value="${tp.allowance}"> d/yr</label>
+      <select class="tres" title="Eligibility by sex">
+        <option value="" ${!tp.sexRestriction?'selected':''}>open to all</option>
+        <option value="female" ${tp.sexRestriction==='female'?'selected':''}>women only</option>
+        <option value="male" ${tp.sexRestriction==='male'?'selected':''}>men only</option>
+      </select>
+      <select class="tres taccr" title="Accrual rate">
+        <option value="annual" ${tp.accrualRate!=='monthly'?'selected':''}>accrue: annual</option>
+        <option value="monthly" ${tp.accrualRate==='monthly'?'selected':''}>accrue: monthly</option>
+      </select>
+      <label class="tallow mono" title="Carryover cap (unused days rolled into next FY)"><input type="number" class="tcarry wide" min="0" value="${tp.carryoverCap||0}"> cap ↦</label>
+      <label class="twd" title="Pro-rate allowance from join date"><input type="checkbox" class="tpro" ${tp.proRateFromJoinDate?'checked':''}> pro-rate</label>
+      <label class="twd"><input type="checkbox" class="twdc" ${tp.countsWeekends?'checked':''}> counts weekends</label>
+      <button class="icon-btn no" data-deltype="${tp.id}" title="Remove type"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>`).join('');
+  const rawSize=(localStorage.getItem(LS_KEY)||'').length;
+  const hols=(s.holidays||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const holRows=hols.length?hols.map(h=>`
+    <div class="hol-row"><span class="hd">${fmt(h.date,{year:'numeric',month:'short',day:'numeric'})}</span>
+      <span class="hn">${esc(h.name)}</span><span class="hy">${h.date.slice(0,4)}</span>
+      <button class="icon-btn no" data-delhol="${h.id}" title="Remove holiday" style="width:26px;height:26px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>`).join('')
+    :'<div class="pnone">No public holidays declared. Weekends are the only non-working days.</div>';
+
+  $('#view-settings').innerHTML=`
+    <div class="set-grid">
+      <div class="stack">
+        <div class="panel reveal"><div class="panel-head"><h2>Workspace</h2></div><div class="panel-body">
+          <div class="field"><label>Company name</label><input id="set-company" value="${esc(s.companyName)}"></div>
+          <div class="mrow">
+            <div class="field"><label>Leave year</label><input id="set-year" type="number" min="2000" max="2100" value="${s.year}"></div>
+            <div class="field"><label>&nbsp;</label><label class="twd" style="padding:11px 0"><input type="checkbox" id="set-wsm" ${s.weekStartsMonday?'checked':''}> weeks start on Monday</label></div>
+          </div>
+          <div class="field"><label>Public holidays <span style="text-transform:none;letter-spacing:0">(skipped in day calculations)</span></label>
+            ${holRows}
+            <div class="mrow" style="margin-top:10px">
+              <div class="field" style="margin-bottom:0"><input type="date" id="hol-date"></div>
+              <div class="field" style="margin-bottom:0"><input type="text" id="hol-name" placeholder="Holiday name"></div>
+              <button class="btn btn-sm" data-addhol style="align-self:flex-start">+ Add</button>
+            </div>
+          </div>
+          <p class="storage-note">The leave year scopes balances, dashboard totals and calendar legend counts. Roles, managers and sign-in accounts live in the Team tab.</p>
+        </div></div>
+        <div class="panel reveal danger-zone"><div class="panel-head" style="border-color:var(--danger-bd)"><h2 style="color:var(--danger-tx)">Danger zone</h2></div><div class="panel-body">
+          <div class="dz-btns">
+            <button class="btn btn-sm" data-act="sample">Load sample data</button>
+            <button class="btn btn-sm" data-act="resetpw">Reset passwords → ${DEMO_PASSWORD}</button>
+            <button class="btn btn-danger btn-sm" data-act="fresh">Start fresh (clear everything)</button>
+          </div>
+        </div></div>
+      </div>
+      <div class="stack">
+        <div class="panel reveal"><div class="panel-head"><h2>Leave types</h2><button class="btn btn-sm btn-primary" data-addtype>+ Add type</button></div>
+          <div class="panel-body">${trows}
+          <p class="storage-note">Allowances are defaults — overrides live on each person’s profile.<br>
+          <b>accrue</b>: annual = full amount up front · monthly = earned 1/12 per month.<br>
+          <b>cap ↦</b>: max unused days rolled into next FY. <b>pro-rate</b>: scale by months since join date.</p></div></div>
+        <div class="panel reveal"><div class="panel-head"><h2>Data &amp; backup</h2></div><div class="panel-body">
+          <div class="dz-btns">
+            <button class="btn btn-ink btn-sm" data-act="export">⤓ Export .ldesk</button>
+            <button class="btn btn-sm" data-act="import">⤒ Import .ldesk</button>
+          </div>
+          <p class="storage-note">Stored locally: <b>${(rawSize/1024).toFixed(1)} KB</b> · last saved ${lastSaved?lastSaved.toLocaleTimeString():'—'}<br>
+          Autosaves to this browser on every change · passwords are salted &amp; hashed · drag a backup .ldesk onto this page to import.</p>
+        </div></div>
+      </div>
+    </div>
+    <div class="panel reveal" style="margin-top:18px"><div class="panel-head" style="flex-wrap:wrap"><h2>Audit log</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <select class="report-scope" id="audit-filter">
+          <option value="all" ${ui.auditFilter==='all'?'selected':''}>All actions</option>
+          <option value="requests" ${ui.auditFilter==='requests'?'selected':''}>Requests</option>
+          <option value="employees" ${ui.auditFilter==='employees'?'selected':''}>Employees</option>
+          <option value="config" ${ui.auditFilter==='config'?'selected':''}>Config &amp; holidays</option>
+        </select>
+        <input class="search-in" id="audit-search" placeholder="Search…" value="${esc(ui.auditSearch)}" style="min-width:150px">
+      </div></div>
+      <div class="panel-body" id="audit-body"></div></div>`;
+  renderAuditBody();
+}
+function auditGroup(action){
+  if(/request/.test(action)) return 'requests';
+  if(/employee/.test(action)) return 'employees';
+  return 'config';
+}
+function renderAuditBody(){
+  const entries=(state.audit||[]).slice().reverse();
+  const q=ui.auditSearch.toLowerCase();
+  const rows=entries.filter(a=>{
+    if(ui.auditFilter!=='all'&&auditGroup(a.action)!==ui.auditFilter) return false;
+    if(q&&!(a.actorName+' '+(AUDIT_LABEL[a.action]||a.action)+' '+(a.note||'')).toLowerCase().includes(q)) return false;
+    return true;
+  }).slice(0,100);
+  const html=rows.length?`<div class="tscroll"><table class="tbl"><thead><tr>
+    <th>When</th><th>Actor</th><th>Action</th><th>Detail</th></tr></thead><tbody>
+    ${rows.map(a=>`<tr>
+      <td class="mono" style="font-size:11.5px;white-space:nowrap">${fmtDateTime(a.at)}</td>
+      <td style="font-weight:600">${esc(a.actorName)}</td>
+      <td><span class="audit-act ${a.action}">${esc(AUDIT_LABEL[a.action]||a.action)}</span></td>
+      <td style="font-size:12.5px;color:var(--text-soft)">${esc(a.note||'—')}</td>
+    </tr>`).join('')}</tbody></table></div>
+    <p class="storage-note">Showing ${rows.length} of ${entries.length} entries · newest first · capped at 1,000.</p>`
+    :'<div class="empty"><p>No audit entries match.</p></div>';
+  $('#audit-body').innerHTML=html;
+}
+
+const REPORT_DEFS=[
+  {id:'overview',label:'Overview',icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg>'},
+  {id:'balances',label:'Balances',icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 10h4.5a1.5 1.5 0 0 1 0 3H9.5M9 13h5a1.5 1.5 0 0 1 0 3H9"/></svg>'},
+  {id:'trends',label:'Trends',icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>'},
+  {id:'departments',label:'Departments',icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="9" width="18" height="12" rx="1.5"/><path d="M9 9V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4M8 13h2M14 13h2M8 17h2M14 17h2"/></svg>'},
+  {id:'absences',label:'Absences',icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M8 14h8M8 18h5"/></svg>'}
+];
+function scopeEmployees(me){
+  const active=state.employees.filter(e=>e.status!=='left');
+  if(me.role==='hr') return active;
+  if(me.role==='manager') return active.filter(e=>e.managerId===me.id);
+  return [];
+}
+function requestsForScope(me){
+  const empIds=new Set(scopeEmployees(me).map(e=>e.id));
+  return state.requests.filter(r=>empIds.has(r.employeeId));
+}
+function inScopePeriod(r){
+  if(ui.reportScope==='fy') return r.from.slice(0,4)===String(state.settings.year);
+  return true;
+}
+function reportOverviewData(me){
+  const emps=scopeEmployees(me);
+  const reqs=requestsForScope(me).filter(r=>r.status==='approved'&&inScopePeriod(r));
+  const total=reqs.reduce((s,r)=>s+r.days,0);
+  const byType={};
+  reqs.forEach(r=>{ byType[r.typeId]=byType[r.typeId]||{days:0,count:0,emps:new Set()}; byType[r.typeId].days+=r.days; byType[r.typeId].count++; byType[r.typeId].emps.add(r.employeeId); });
+  const byEmp={};
+  reqs.forEach(r=>{byEmp[r.employeeId]=(byEmp[r.employeeId]||0)+r.days});
+  const empIdsWithLeave=new Set(Object.keys(byEmp));
+  const neverTook=emps.filter(e=>!empIdsWithLeave.has(e.id));
+  let totalAllow=0,totalUsed=0;
+  emps.forEach(e=>{ state.settings.leaveTypes.forEach(tp=>{ if(isEligible(e,tp)&&tp.allowance>0){ totalAllow+=effectiveAllowance(e,tp,state.settings.year); totalUsed+=usedDays(e.id,tp.id); } }); });
+  const utilization=totalAllow?Math.round(totalUsed/totalAllow*100):0;
+  const topUsers=Object.entries(byEmp).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([eid,d])=>{const e=empById(eid);return e?{name:e.name,dept:e.department||'—',days:d}:null}).filter(Boolean);
+  const typeBreakdown=Object.entries(byType).sort((a,b)=>b[1].days-a[1].days).map(([tid,v])=>{const tp=typeById(tid);return {id:tid,name:tp.name,color:tp.color,days:v.days,count:v.count,people:v.emps.size,pct:total?(v.days/total*100):0}});
+  return {emps,reqs,total,byType,typeBreakdown,neverTook,utilization,topUsers,totalAllow,totalUsed};
+}
+function renderOverviewReport(me){
+  const d=reportOverviewData(me);
+  const typeRows=d.typeBreakdown.map(t=>`<div class="chart-row"><span class="chart-label" title="${esc(t.name)}"><span class="pill" style="--pc:${t.color}">${esc(t.name)}</span></span><div class="chart-bar"><i data-w="${t.pct}" style="background:${t.color}"></i></div><span class="chart-val"><b>${fmtNum(t.days)}d</b> · ${t.count} req</span></div>`).join('')||'<div class="pnone">No approved leave in this period.</div>';
+  const topRows=d.topUsers.map(u=>`<div class="chart-row"><span class="chart-label">${esc(u.name)}</span><span class="chart-val" style="width:auto;flex:1;text-align:left;margin-left:4px;color:var(--text-soft)">${esc(u.dept)}</span><span class="chart-val"><b>${fmtNum(u.days)}d</b></span></div>`).join('')||'<div class="pnone">Nobody has taken leave yet.</div>';
+  const neverRows=d.neverTook.slice(0,10).map(e=>`<div class="flag-row" data-profile="${e.id}" title="View ${esc(e.name)}\u2019s profile">${avatarHTML(e.name,1)}<b>${esc(e.name)}</b><span class="flag-pill zero">0 days used</span><span class="flag-meta">${esc(e.department||'—')}</span></div>`).join('')||'<div class="pnone">Everyone has taken at least some leave.</div>';
+  return `
+    <div class="report-grid cols-4" style="margin-bottom:18px">
+      <div class="report-card"><span class="klabel">Total days used</span><span class="stat-num">${fmtNum(d.total)}</span><span class="stat-sub">${d.reqs.length} approved request${d.reqs.length===1?'':'s'}</span></div>
+      <div class="report-card"><span class="klabel">Utilization</span><span class="stat-num ${d.utilization>90?'warn':d.utilization>0?'':'zero'}">${d.utilization}%</span><span class="stat-sub">${fmtNum(d.totalUsed)} / ${fmtNum(d.totalAllow)} allowance-days</span></div>
+      <div class="report-card"><span class="klabel">People with leave</span><span class="stat-num">${d.emps.length}</span><span class="stat-sub">${d.emps.length?`across ${new Set(d.emps.map(e=>e.department||'—')).size} dept${new Set(d.emps.map(e=>e.department||'—')).size===1?'':'s'}`:'—'}</span></div>
+      <div class="report-card"><span class="klabel">Zero-usage flags</span><span class="stat-num ${d.neverTook.length?'warn':'ok'}">${d.neverTook.length}</span><span class="stat-sub">${d.neverTook.length?'people haven\u2019t used any leave':'everyone has taken some'}</span></div>
+    </div>
+    <div class="report-grid cols-2">
+      <div class="report-card"><h3>${REPORT_DEFS[0].icon} Breakdown by leave type</h3>${typeRows}</div>
+      <div class="report-card"><h3>${REPORT_DEFS[0].icon} Top users</h3>${topRows}</div>
+    </div>
+    <div class="report-card" style="margin-top:14px">
+      <h3>${REPORT_DEFS[0].icon} People who haven\u2019t used any leave</h3>
+      <p style="font-size:12.5px;color:var(--text-soft);margin-bottom:12px">Wellbeing signal — check everyone\u2019s taking their allocated time off.</p>
+      ${neverRows}
+    </div>
+    <div class="rpt-actions">
+      <button class="btn btn-sm" data-rpt-csv="overview">${ICON_SVG('download')} Export overview.csv</button>
+      <button class="btn btn-sm btn-ink" data-rpt-print>${ICON_SVG('pdf')} Export PDF</button>
+    </div>`;
+}
+function renderBalancesReport(me){
+  const emps=scopeEmployees(me);
+  const types=state.settings.leaveTypes;
+  const rows=emps.map(e=>{
+    const cells=types.map(tp=>{
+      if(!isEligible(e,tp)) return '<td class="mono" style="color:var(--text-soft)">—</td>';
+      const allow=effectiveAllowance(e,tp,state.settings.year),used=usedDays(e.id,tp.id),left=allow-used;
+      const cls=left<0?'neg':'';
+      return `<td class="mono" style="font-size:11.5px"><span class="${cls}">${fmtNum(used)}/${fmtNum(allow)}</span><br><span class="${cls}" style="color:var(--text-soft)">${left<0?'−'+fmtNum(Math.abs(left)):fmtNum(left)}d left</span></td>`;
+    }).join('');
+    const totalAllow=types.filter(tp=>isEligible(e,tp)&&tp.allowance>0).reduce((s,tp)=>s+effectiveAllowance(e,tp,state.settings.year),0);
+    const totalUsed=types.filter(tp=>isEligible(e,tp)).reduce((s,tp)=>s+usedDays(e.id,tp.id),0);
+    const totalLeft=totalAllow-totalUsed;
+    const util=totalAllow?Math.round(totalUsed/totalAllow*100):0;
+    const flag=totalLeft<0?'neg':(util===0&&totalAllow>0?'zero':(util>=90?'warn':''));
+    return `<tr class="${e.status==='left'?'dim':''}" data-profile="${e.id}">
+      <td><div class="emp-cell">${avatarHTML(e.name,1)}<div><div class="nm">${esc(e.name)}</div><div class="em">${esc(e.roleTitle||'')}</div></div></div></td>
+      <td><span class="chip">${esc(e.department||'—')}</span></td>
+      <td class="mono" style="text-align:center">${fmtNum(totalAllow)}</td>
+      <td class="mono" style="text-align:center"><b>${fmtNum(totalUsed)}</b></td>
+      <td class="mono ${totalLeft<0?'neg':''}" style="text-align:center"><b>${totalLeft<0?'−'+fmtNum(Math.abs(totalLeft)):fmtNum(totalLeft)}</b></td>
+      <td class="mono" style="text-align:center">${util}%</td>
+      ${cells}
+      <td>${flag?`<span class="flag-pill ${flag}">${totalLeft<0?'overdrawn':util===0?'unused':util>=90?'near limit':'—'}</span>`:'<span class="flag-pill" style="color:var(--ok-tx);border-color:var(--ok-bd);background:var(--ok-bg)">OK</span>'}</td>
+    </tr>`;
+  }).join('');
+  const typeHeaders=types.map(tp=>`<th title="${esc(tp.name)}">${esc(tp.name.length>12?tp.name.slice(0,12)+'…':tp.name)}</th>`).join('');
+  return `
+    <div class="report-card">
+      <h3>${REPORT_DEFS[1].icon} Balance summary · ${ui.reportScope==='fy'?'FY '+state.settings.year:'All time'}</h3>
+      <p style="font-size:12.5px;color:var(--text-soft);margin-bottom:14px">Rows are clickable — open any person\u2019s full profile for per-type detail. Allowances reflect accrual, pro-ration and carryover.</p>
+      <div class="tscroll"><table class="tbl"><thead><tr>
+        <th>Person</th><th>Department</th><th style="text-align:center">Allowance</th><th style="text-align:center">Used</th><th style="text-align:center">Remaining</th><th style="text-align:center">Utilization</th>${typeHeaders}<th>Status</th>
+      </tr></thead>
+      <tbody>${rows||'<tr><td colspan="20"><div class="empty"><p>No people in scope.</p></div></td></tr>'}</tbody>
+      </table></div>
+    </div>
+    <div class="rpt-actions">
+      <button class="btn btn-sm" data-rpt-csv="balances">${ICON_SVG('download')} Export balances.csv</button>
+      <button class="btn btn-sm btn-ink" data-rpt-print>${ICON_SVG('pdf')} Export PDF</button>
+    </div>`;
+}
+function renderTrendsReport(me){
+  const emps=scopeEmployees(me);
+  const y=state.settings.year;
+  const approved=requestsForScope(me).filter(r=>r.status==='approved');
+  const months=Array.from({length:12},(_,i)=>({idx:i,label:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][i],fy:0,allTime:0,byType:{}}));
+  approved.forEach(r=>{ const d=fromISO(r.from); if(d.getFullYear()===y) months[d.getMonth()].fy+=r.days; months[d.getMonth()].allTime+=r.days; months[d.getMonth()].byType[r.typeId]=(months[d.getMonth()].byType[r.typeId]||0)+r.days; });
+  const maxDays=Math.max(...months.map(m=>m.fy),1);
+  const types=state.settings.leaveTypes;
+  const bars=months.map(m=>{
+    const total=m.fy; const height=total/maxDays*180;
+    const segs=types.map(tp=>{ const v=m.byType[tp.id]||0; const segH=total?(v/total*height):0; return v?`<div class="vbar-seg" style="background:${tp.color};height:0" data-h="${segH}px" title="${esc(tp.name)}: ${fmtNum(v)}d"></div>`:''; }).join('');
+    return `<div class="vbar-col"><span class="vbar-val">${total?fmtNum(total):''}</span><div class="vbar-stack" style="height:180px;justify-content:flex-end">${segs}</div><span class="vbar-lbl">${m.label}</span></div>`;
+  }).join('');
+  const allTimeMax=Math.max(...months.map(m=>m.allTime),1);
+  const allBars=months.map(m=>{ const pct=m.allTime/allTimeMax*100; return `<div class="chart-row"><span class="chart-label">${m.label}</span><div class="chart-bar"><i data-w="${pct}" style="background:var(--accent-btn)"></i></div><span class="chart-val"><b>${fmtNum(m.allTime)}d</b></span></div>`; }).join('');
+  const fyTotal=months.reduce((s,m)=>s+m.fy,0);
+  const avgPerMonth=emps.length?Math.round(fyTotal/12/emps*10)/10:0;
+  const busiest=months.reduce((best,m)=>m.fy>best.fy?m:best,{fy:-1,label:'—'});
+  return `
+    <div class="report-grid cols-4" style="margin-bottom:18px">
+      <div class="report-card"><span class="klabel">FY total</span><span class="stat-num">${fmtNum(fyTotal)}</span><span class="stat-sub">approved days</span></div>
+      <div class="report-card"><span class="klabel">Per person / month</span><span class="stat-num">${avgPerMonth}</span><span class="stat-sub">days average</span></div>
+      <div class="report-card"><span class="klabel">Busiest month</span><span class="stat-num">${busiest.label}</span><span class="stat-sub">${fmtNum(busiest.fy)} day${busiest.fy===1?'':'s'}</span></div>
+      <div class="report-card"><span class="klabel">People in scope</span><span class="stat-num">${emps.length}</span><span class="stat-sub">${me.role==='manager'?'direct reports':'all employees'}</span></div>
+    </div>
+    <div class="report-grid cols-2">
+      <div class="report-card"><h3>${REPORT_DEFS[2].icon} Monthly breakdown · FY ${y}</h3><div class="vbar-wrap">${bars}</div>
+        <div class="legend" style="margin-top:14px">${types.map(tp=>`<span class="li"><i style="background:${tp.color}"></i>${esc(tp.name)}</span>`).join('')}</div></div>
+      <div class="report-card"><h3>${REPORT_DEFS[2].icon} Seasonality (all-time)</h3>
+        <p style="font-size:12px;color:var(--text-soft);margin-bottom:8px">Same month across every year in your data.</p>${allBars}</div>
+    </div>
+    <div class="rpt-actions">
+      <button class="btn btn-sm" data-rpt-csv="trends">${ICON_SVG('download')} Export monthly.csv</button>
+      <button class="btn btn-sm btn-ink" data-rpt-print>${ICON_SVG('pdf')} Export PDF</button>
+    </div>`;
+}
+function renderDepartmentsReport(me){
+  const emps=scopeEmployees(me);
+  const deptMap={};
+  emps.forEach(e=>{ const k=e.department||'No department'; deptMap[k]=deptMap[k]||{headcount:0,totalAllow:0,totalUsed:0}; deptMap[k].headcount++;
+    state.settings.leaveTypes.forEach(tp=>{ if(isEligible(e,tp)&&tp.allowance>0) deptMap[k].totalAllow+=effectiveAllowance(e,tp,state.settings.year); if(isEligible(e,tp)) deptMap[k].totalUsed+=usedDays(e.id,tp.id); }); });
+  const entries=Object.entries(deptMap).sort((a,b)=>{ const ua=a[1].totalAllow?(a[1].totalUsed/a[1].totalAllow):0; const ub=b[1].totalAllow?(b[1].totalUsed/b[1].totalAllow):0; return ub-ua; });
+  const maxUtil=Math.max(...entries.map(([_,v])=>v.totalAllow?(v.totalUsed/v.totalAllow*100):0),1);
+  const cards=entries.map(([name,v])=>{ const util=v.totalAllow?Math.round(v.totalUsed/v.totalAllow*100):0; const avg=v.headcount?Math.round(v.totalUsed/v.headcount*10)/10:0;
+    return `<div class="dept-card"><b>${esc(name)}</b><div class="dm">${v.headcount} ${v.headcount===1?'person':'people'}</div>
+      <div class="dn" style="color:${util>=90?'var(--warn-tx)':util>=60?'var(--accent-text)':'var(--text)'}">${util}%</div>
+      <div class="ds">utilization · ${fmtNum(v.totalUsed)}d used / ${fmtNum(v.totalAllow)}d</div>
+      <div class="chart-bar" style="margin-top:10px"><i data-w="${util/maxUtil*100}" style="background:var(--accent-btn)"></i></div>
+      <div class="ds" style="margin-top:8px">${avg}d / person · avg</div></div>`;
+  }).join('')||'<div class="pnone">No departments with data.</div>';
+  const rows=entries.map(([name,v])=>{ const util=v.totalAllow?Math.round(v.totalUsed/v.totalAllow*100):0; const avg=v.headcount?Math.round(v.totalUsed/v.headcount*10)/10:0;
+    return `<tr><td><b>${esc(name)}</b></td><td class="mono" style="text-align:center">${v.headcount}</td><td class="mono" style="text-align:center">${fmtNum(v.totalAllow)}</td><td class="mono" style="text-align:center"><b>${fmtNum(v.totalUsed)}</b></td><td class="mono ${util>=90?'warn':''}" style="text-align:center"><b>${util}%</b></td><td class="mono" style="text-align:center">${avg}</td></tr>`; }).join('');
+  return `
+    <div class="report-card"><h3>${REPORT_DEFS[3].icon} By department · ${ui.reportScope==='fy'?'FY '+state.settings.year:'All time'}</h3><div class="dept-grid">${cards}</div></div>
+    <div class="report-card" style="margin-top:14px"><h3>${REPORT_DEFS[3].icon} Tabular view</h3>
+      <div class="tscroll"><table class="tbl"><thead><tr><th>Department</th><th style="text-align:center">Headcount</th><th style="text-align:center">Total allowance</th><th style="text-align:center">Used</th><th style="text-align:center">Utilization</th><th style="text-align:center">Avg / person</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="6"><div class="empty"><p>No departments with data.</p></div></td></tr>'}</tbody></table></div></div>
+    <div class="rpt-actions">
+      <button class="btn btn-sm" data-rpt-csv="departments">${ICON_SVG('download')} Export departments.csv</button>
+      <button class="btn btn-sm btn-ink" data-rpt-print>${ICON_SVG('pdf')} Export PDF</button>
+    </div>`;
+}
+function renderAbsencesReport(me){
+  const reqs=requestsForScope(me).filter(r=>(r.status==='approved'||r.status==='pending')&&inScopePeriod(r)).sort((a,b)=>b.from.localeCompare(a.from));
+  const rows=reqs.map(r=>{ const e=empById(r.employeeId); if(!e)return''; const tp=typeById(r.typeId);
+    return `<tr class="${r.status==='pending'?'dim':''}" data-profile="${e.id}">
+      <td><div class="emp-cell">${avatarHTML(e.name,1)}<div><div class="nm">${esc(e.name)}</div><div class="em">${esc(e.department||'—')}</div></div></div></td>
+      <td>${typePill(tp)}</td><td class="mono" style="font-size:12px">${rangeLabel(r.from,r.to)}</td>
+      <td class="mono" style="text-align:center">${fmtDays(r.days)}${r.durationType==='half'?' ½':(r.durationType==='hours'?` ${fmtNum(r.hoursPerDay)}h`:'')}</td>
+      <td><span class="badge ${r.status}"><i></i>${r.status}</span></td>
+      ${r.reason?`<td><span class="reason" title="${esc(r.reason)}">${esc(r.reason)}</span>${attChip(r)}</td>`:`<td class="mono" style="color:var(--text-soft)">—${attChip(r)}</td>`}
+    </tr>`; }).join('');
+  return `
+    <div class="report-card"><h3>${REPORT_DEFS[4].icon} Individual absences · ${ui.reportScope==='fy'?'FY '+state.settings.year:'All time'}</h3>
+      <p style="font-size:12.5px;color:var(--text-soft);margin-bottom:14px">Every approved or pending absence in scope. Rows are clickable for full profiles.</p>
+      <div class="tscroll"><table class="tbl"><thead><tr><th>Person</th><th>Type</th><th>Dates</th><th style="text-align:center">Days</th><th>Status</th><th>Reason</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="6"><div class="empty"><p>No absences in this period.</p></div></td></tr>'}</tbody></table></div></div>
+    <div class="rpt-actions">
+      <button class="btn btn-sm" data-rpt-csv="absences">${ICON_SVG('download')} Export absences.csv</button>
+      <button class="btn btn-sm btn-ink" data-rpt-print>${ICON_SVG('pdf')} Export PDF</button>
+    </div>`;
+}
+function ICON_SVG(kind){
+  if(kind==='download') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>';
+  if(kind==='pdf') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6M9 9h1"/></svg>';
+  return '';
+}
+
+const PRINT_CSS=`
+@page{size:A4;margin:14mm 14mm 16mm}
+*{box-sizing:border-box}
+body{font-family:'IBM Plex Sans',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;color:#1a2432;font-size:10.5pt;line-height:1.4;margin:0}
+h1{font-size:20pt;margin:2px 0 0;letter-spacing:-.5px}
+h2{font-size:12pt;margin:16px 0 6px;padding-bottom:4px;border-bottom:2px solid #182233;page-break-after:avoid}
+h3{font-size:10.5pt;margin:12px 0 4px}
+.doc-header{border-bottom:3px solid #182233;padding-bottom:10px;margin-bottom:14px}
+.doc-brand{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.doc-logo{width:34px;height:34px;background:#3f6de0;color:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px}
+.doc-app{font-weight:800;font-size:13pt;line-height:1}
+.doc-co{font-size:8pt;color:#5c6b80;text-transform:uppercase;letter-spacing:1.2px;margin-top:2px}
+.doc-meta{display:flex;gap:26px;flex-wrap:wrap;margin-top:10px}
+.doc-meta div{font-size:9pt}
+.doc-meta span{display:block;color:#5c6b80;text-transform:uppercase;letter-spacing:.6px;font-size:7pt;margin-bottom:2px}
+.doc-meta b{font-weight:600}
+table{width:100%;border-collapse:collapse;margin:6px 0 14px;font-size:9pt;page-break-inside:auto}
+thead{display:table-header-group}
+tr{page-break-inside:avoid}
+th{background:#182233;color:#fff;text-align:left;padding:5px 8px;font-size:7.5pt;text-transform:uppercase;letter-spacing:.5px}
+td{padding:4px 8px;border-bottom:1px solid #dbe1e9;vertical-align:top}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.neg{color:#c8372d;font-weight:700}
+tbody tr:nth-child(even) td{background:#f4f6f9}
+.stats-grid{display:flex;gap:10px;margin:8px 0 16px;flex-wrap:wrap}
+.stat{flex:1;min-width:118px;border:1px solid #c6cfda;border-radius:8px;padding:8px 10px}
+.stat .sl{font-size:6.8pt;text-transform:uppercase;letter-spacing:.6px;color:#5c6b80}
+.stat .sv{font-size:16pt;font-weight:800;line-height:1.15;margin-top:2px}
+.stat .ss{font-size:7.5pt;color:#5c6b80;margin-top:2px}
+.type-dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
+.flag{display:inline-block;font-size:6.8pt;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:1px 7px;border-radius:99px;border:1px solid;white-space:nowrap}
+.flag.neg{color:#c8372d;border-color:#e8a79d;background:#fce9e6}
+.flag.warn{color:#7d5600;border-color:#e9cf8a;background:#fff4d6}
+.flag.zero{color:#5c6b80;border-color:#c6cfda;background:#f4f6f9}
+.flag.ok{color:#136a3b;border-color:#a9d8ba;background:#e2f3e9}
+.doc-footer{margin-top:18px;padding-top:8px;border-top:1px solid #c6cfda;font-size:8pt;color:#5c6b80;text-align:center}
+.page-break{page-break-before:always}
+.note{font-size:8.5pt;color:#5c6b80;margin:4px 0}
+`;
+function buildPrintDocument(me){
+  const y=state.settings.year;
+  const period=ui.reportScope==='fy'?`Fiscal year ${y}`:'All time';
+  const scopeCount=scopeEmployees(me).length;
+  const scope=me.role==='manager'?`My team (${scopeCount} direct report${scopeCount===1?'':'s'})`:'All employees';
+  const rptName={overview:'Leave Overview',balances:'Balance Summary',trends:'Monthly Trends',departments:'Department Summary',absences:'Absence Register'}[ui.report];
+  let body='';
+  if(ui.report==='overview') body=printOverview(me);
+  else if(ui.report==='balances') body=printBalances(me);
+  else if(ui.report==='trends') body=printTrends(me);
+  else if(ui.report==='departments') body=printDepartments(me);
+  else body=printAbsences(me);
+  return `<!DOCTYPE html><html><head><meta charset="utf-8">
+  <title>${esc(rptName)} — ${esc(state.settings.companyName)}</title>
+  <style>${PRINT_CSS}</style></head>
+  <body>
+    <header class="doc-header">
+      <div class="doc-brand">
+        <div class="doc-logo">LD</div>
+        <div><div class="doc-app">LeaveDesk</div><div class="doc-co">${esc(state.settings.companyName)}</div></div>
+      </div>
+      <h1>${rptName}</h1>
+      <div class="doc-meta">
+        <div><span>Period</span><b>${period}</b></div>
+        <div><span>Scope</span><b>${scope}</b></div>
+        <div><span>Generated</span><b>${new Date().toLocaleString()}</b></div>
+        <div><span>Prepared by</span><b>${esc(me.name)} (${roleLabel(me.role)})</b></div>
+      </div>
+    </header>
+    <main>${body}</main>
+    <footer class="doc-footer">Generated by LeaveDesk · ${esc(state.settings.companyName)} · ${new Date().toLocaleDateString()}</footer>
+  </body></html>`;
+}
+function printOverview(me){
+  const d=reportOverviewData(me);
+  let html=`
+  <div class="stats-grid">
+    <div class="stat"><div class="sl">Total days used</div><div class="sv">${fmtNum(d.total)}</div><div class="ss">${d.reqs.length} approved requests</div></div>
+    <div class="stat"><div class="sl">Utilization</div><div class="sv">${d.utilization}%</div><div class="ss">${fmtNum(d.totalUsed)} / ${fmtNum(d.totalAllow)} allowance-days</div></div>
+    <div class="stat"><div class="sl">People in scope</div><div class="sv">${d.emps.length}</div><div class="ss">${new Set(d.emps.map(e=>e.department||'—')).size} departments</div></div>
+    <div class="stat"><div class="sl">Zero-usage flags</div><div class="sv">${d.neverTook.length}</div><div class="ss">haven\u2019t used any leave</div></div>
+  </div>
+  <h2>Breakdown by leave type</h2>
+  <table><thead><tr><th>Leave type</th><th class="num">Days</th><th class="num">Requests</th><th class="num">People</th><th class="num">% of total</th></tr></thead>
+  <tbody>${d.typeBreakdown.map(t=>`<tr><td><span class="type-dot" style="background:${t.color}"></span>${esc(t.name)}</td><td class="num">${fmtNum(t.days)}</td><td class="num">${t.count}</td><td class="num">${t.people}</td><td class="num">${Math.round(t.pct)}%</td></tr>`).join('')||'<tr><td colspan="5">No approved leave in this period.</td></tr>'}</tbody></table>
+  <h2>Top users</h2>
+  <table><thead><tr><th style="width:30px">#</th><th>Employee</th><th>Department</th><th class="num">Days used</th></tr></thead>
+  <tbody>${d.topUsers.map((u,i)=>`<tr><td>${i+1}</td><td>${esc(u.name)}</td><td>${esc(u.dept)}</td><td class="num">${fmtNum(u.days)}</td></tr>`).join('')||'<tr><td colspan="4">No leave taken yet.</td></tr>'}</tbody></table>`;
+  if(d.neverTook.length){
+    html+=`<h2>People who haven\u2019t used any leave</h2>
+    <table><thead><tr><th>Employee</th><th>Department</th><th>Status</th></tr></thead>
+    <tbody>${d.neverTook.map(e=>`<tr><td>${esc(e.name)}</td><td>${esc(e.department||'—')}</td><td><span class="flag zero">0 days used</span></td></tr>`).join('')}</tbody></table>`;
+  }
+  return html;
+}
+function printBalances(me){
+  const emps=scopeEmployees(me);
+  const types=state.settings.leaveTypes;
+  const y=state.settings.year;
+  const rows=emps.map(e=>{
+    const totalAllow=types.filter(tp=>isEligible(e,tp)&&tp.allowance>0).reduce((s,tp)=>s+effectiveAllowance(e,tp,y),0);
+    const totalUsed=types.filter(tp=>isEligible(e,tp)).reduce((s,tp)=>s+usedDays(e.id,tp.id),0);
+    const totalLeft=totalAllow-totalUsed;
+    const util=totalAllow?Math.round(totalUsed/totalAllow*100):0;
+    const flag=totalLeft<0?'neg':(util===0&&totalAllow>0?'zero':(util>=90?'warn':'ok'));
+    const flagLabel=totalLeft<0?'Overdrawn':(util===0&&totalAllow>0?'Unused':(util>=90?'Near limit':'OK'));
+    return {e,totalAllow,totalUsed,totalLeft,util,flag,flagLabel};
+  });
+  return `<h2>Balance summary</h2>
+  <table><thead><tr><th>Employee</th><th>Department</th><th class="num">Allowance</th><th class="num">Used</th><th class="num">Remaining</th><th class="num">Utilization</th><th>Status</th></tr></thead>
+  <tbody>${rows.map(r=>`<tr>
+    <td>${esc(r.e.name)}</td><td>${esc(r.e.department||'—')}</td>
+    <td class="num">${fmtNum(r.totalAllow)}</td><td class="num">${fmtNum(r.totalUsed)}</td>
+    <td class="num ${r.totalLeft<0?'neg':''}">${fmtNum(r.totalLeft)}</td>
+    <td class="num">${r.util}%</td>
+    <td><span class="flag ${r.flag}">${r.flagLabel}</span></td></tr>`).join('')||'<tr><td colspan="7">No people in scope.</td></tr>'}</tbody></table>
+  <div class="page-break"></div>
+  <h2>Remaining days by leave type</h2>
+  <table><thead><tr><th>Employee</th>${types.map(tp=>`<th class="num">${esc(tp.name.length>14?tp.name.slice(0,14)+'…':tp.name)}</th>`).join('')}</tr></thead>
+  <tbody>${rows.map(r=>`<tr><td>${esc(r.e.name)}</td>${types.map(tp=>{
+    if(!isEligible(r.e,tp)) return `<td class="num">—</td>`;
+    const allow=effectiveAllowance(r.e,tp,y),used=usedDays(r.e.id,tp.id),left=allow-used;
+    return `<td class="num ${left<0?'neg':''}">${fmtNum(left)}</td>`;
+  }).join('')}</tr>`).join('')}</tbody></table>
+  <p class="note">Allowances reflect accrual, join-date pro-ration and carryover for ${ui.reportScope==='fy'?'FY '+y:'the selected period'}. Negative values indicate overdrawn balances.</p>`;
+}
+function printTrends(me){
+  const y=state.settings.year;
+  const approved=requestsForScope(me).filter(r=>r.status==='approved');
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const fy=Array(12).fill(0),all=Array(12).fill(0);
+  approved.forEach(r=>{const d=fromISO(r.from); if(d.getFullYear()===y)fy[d.getMonth()]+=r.days; all[d.getMonth()]+=r.days;});
+  const fyTotal=fy.reduce((a,b)=>a+b,0);
+  const emps=scopeEmployees(me);
+  const avg=emps.length?Math.round(fyTotal/12/emps*10)/10:0;
+  const busiestIdx=fy.indexOf(Math.max(...fy));
+  return `
+  <div class="stats-grid">
+    <div class="stat"><div class="sl">FY ${y} total</div><div class="sv">${fmtNum(fyTotal)}</div><div class="ss">approved days</div></div>
+    <div class="stat"><div class="sl">Per person / month</div><div class="sv">${avg}</div><div class="ss">days average</div></div>
+    <div class="stat"><div class="sl">Busiest month</div><div class="sv">${months[busiestIdx]}</div><div class="ss">${fmtNum(fy[busiestIdx])} days</div></div>
+    <div class="stat"><div class="sl">People in scope</div><div class="sv">${emps.length}</div><div class="ss">${me.role==='manager'?'direct reports':'all employees'}</div></div>
+  </div>
+  <h2>Monthly leave usage</h2>
+  <table><thead><tr><th>Month</th><th class="num">FY ${y} (days)</th><th class="num">All-time (days)</th></tr></thead>
+  <tbody>${months.map((m,i)=>`<tr><td>${m}</td><td class="num">${fy[i]?fmtNum(fy[i]):'—'}</td><td class="num">${all[i]?fmtNum(all[i]):'—'}</td></tr>`).join('')}</tbody></table>`;
+}
+function printDepartments(me){
+  const emps=scopeEmployees(me);
+  const deptMap={};
+  emps.forEach(e=>{const k=e.department||'No department'; deptMap[k]=deptMap[k]||{headcount:0,totalAllow:0,totalUsed:0}; deptMap[k].headcount++;
+    state.settings.leaveTypes.forEach(tp=>{ if(isEligible(e,tp)&&tp.allowance>0) deptMap[k].totalAllow+=effectiveAllowance(e,tp,state.settings.year); if(isEligible(e,tp)) deptMap[k].totalUsed+=usedDays(e.id,tp.id); });});
+  const entries=Object.entries(deptMap).sort((a,b)=>{const ua=a[1].totalAllow?(a[1].totalUsed/a[1].totalAllow):0;const ub=b[1].totalAllow?(b[1].totalUsed/b[1].totalAllow):0;return ub-ua;});
+  return `<h2>Department summary</h2>
+  <table><thead><tr><th>Department</th><th class="num">Headcount</th><th class="num">Total allowance</th><th class="num">Used</th><th class="num">Utilization</th><th class="num">Avg / person</th></tr></thead>
+  <tbody>${entries.map(([name,v])=>{const util=v.totalAllow?Math.round(v.totalUsed/v.totalAllow*100):0;const avg=v.headcount?Math.round(v.totalUsed/v.headcount*10)/10:0;
+    return `<tr><td>${esc(name)}</td><td class="num">${v.headcount}</td><td class="num">${fmtNum(v.totalAllow)}</td><td class="num">${fmtNum(v.totalUsed)}</td><td class="num ${util>=90?'neg':''}">${util}%</td><td class="num">${avg}</td></tr>`;}).join('')||'<tr><td colspan="6">No departments with data.</td></tr>'}</tbody></table>`;
+}
+function printAbsences(me){
+  const reqs=requestsForScope(me).filter(r=>(r.status==='approved'||r.status==='pending')&&inScopePeriod(r)).sort((a,b)=>b.from.localeCompare(a.from));
+  return `<h2>Absence register</h2>
+  <table><thead><tr><th>Employee</th><th>Department</th><th>Leave type</th><th>From</th><th>To</th><th class="num">Days</th><th>Duration</th><th>Status</th></tr></thead>
+  <tbody>${reqs.map(r=>{const e=empById(r.employeeId);const tp=typeById(r.typeId);
+    const dur=r.durationType==='half'?'Half-days':(r.durationType==='hours'?fmtNum(r.hoursPerDay)+'h/day':'Full days');
+    const stCls=r.status==='approved'?'ok':(r.status==='pending'?'warn':'neg');
+    return `<tr><td>${e?esc(e.name):'—'}</td><td>${e?esc(e.department||'—'):'—'}</td><td>${esc(tp.name)}</td><td>${fmtDateFull(r.from)}</td><td>${fmtDateFull(r.to)}</td><td class="num">${fmtNum(r.days)}</td><td>${dur}</td><td><span class="flag ${stCls}">${r.status}</span></td></tr>`;}).join('')||'<tr><td colspan="8">No absences in this period.</td></tr>'}</tbody></table>`;
+}
+function exportPDF(){
+  const me=currentUser(); if(!me)return;
+  const doc=buildPrintDocument(me);
+  let iframe=document.getElementById('printFrame');
+  if(iframe) iframe.remove();
+  iframe=document.createElement('iframe');
+  iframe.id='printFrame';
+  document.body.appendChild(iframe);
+  iframe.onload=()=>{
+    const win=iframe.contentWindow;
+    setTimeout(()=>{
+      win.focus();
+      win.onafterprint=()=>iframe.remove();
+      win.print();
+      setTimeout(()=>{ if(document.getElementById('printFrame')) iframe.remove(); },60000);
+    },300);
+  };
+  iframe.srcdoc=doc;
+  toast('Opening print dialog — choose \u201cSave as PDF\u201d to export.','ok');
+}
+
+function exportReportCSV(kind,me){
+  const y=state.settings.year;
+  const co=state.settings.companyName.replace(/[^a-z0-9]+/gi,'-');
+  const csv=(rows)=>{ const esc_cell=v=>{const s=String(v??'');return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}; return rows.map(r=>r.map(esc_cell).join(',')).join('\n'); };
+  const download=(name,rows)=>{ const blob=new Blob([csv(rows)],{type:'text/csv;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); URL.revokeObjectURL(a.href); toast('Exported '+name,'ok'); };
+  if(kind==='overview'){
+    const d=reportOverviewData(me);
+    const rows=[['Metric','Value'],['Scope',me.role==='manager'?'My team':'All employees'],['Period',ui.reportScope==='fy'?'FY '+y:'All time'],['People in scope',d.emps.length],['Total approved days',d.total],['Approved requests',d.reqs.length],['Utilization %',d.utilization],['Total allowance-days',d.totalAllow],['Total used-days',d.totalUsed],['People with zero usage',d.neverTook.length],[],['Leave type','Days','Requests','People'],...d.typeBreakdown.map(t=>[t.name,t.days,t.count,t.people])];
+    download(`${co}-overview-${y}.csv`,rows);
+  } else if(kind==='balances'){
+    const emps=scopeEmployees(me); const types=state.settings.leaveTypes;
+    const header=['Person','Department','Role','Total allowance','Total used','Total remaining','Utilization %',...types.map(t=>t.name+' used'),...types.map(t=>t.name+' remaining')];
+    const rows=[header,...emps.map(e=>{
+      const usedByType=types.map(t=>isEligible(e,t)?usedDays(e.id,t.id):'');
+      const leftByType=types.map(t=>isEligible(e,t)?(effectiveAllowance(e,t,state.settings.year)-usedDays(e.id,t.id)):'');
+      const totalAllow=types.filter(t=>isEligible(e,t)&&t.allowance>0).reduce((s,t)=>s+effectiveAllowance(e,t,state.settings.year),0);
+      const totalUsed=types.filter(t=>isEligible(e,t)).reduce((s,t)=>s+usedDays(e.id,t.id),0);
+      const util=totalAllow?Math.round(totalUsed/totalAllow*100):0;
+      return [e.name,e.department||'',e.roleTitle||'',totalAllow,totalUsed,totalAllow-totalUsed,util,...usedByType,...leftByType]; })];
+    download(`${co}-balances-${y}.csv`,rows);
+  } else if(kind==='trends'){
+    const reqs=requestsForScope(me).filter(r=>r.status==='approved');
+    const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const fy=Array(12).fill(0),all=Array(12).fill(0);
+    reqs.forEach(r=>{ const d=fromISO(r.from); if(d.getFullYear()===y) fy[d.getMonth()]+=r.days; all[d.getMonth()]+=r.days; });
+    download(`${co}-trends-${y}.csv`,[['Month',`FY ${y}`,'All time'],...months.map((m,i)=>[m,fy[i],all[i]])]);
+  } else if(kind==='departments'){
+    const emps=scopeEmployees(me); const deptMap={};
+    emps.forEach(e=>{ const k=e.department||'No department'; deptMap[k]=deptMap[k]||{headcount:0,totalAllow:0,totalUsed:0}; deptMap[k].headcount++;
+      state.settings.leaveTypes.forEach(tp=>{ if(isEligible(e,tp)&&tp.allowance>0) deptMap[k].totalAllow+=effectiveAllowance(e,tp,state.settings.year); if(isEligible(e,tp)) deptMap[k].totalUsed+=usedDays(e.id,tp.id); }); });
+    const rows=[['Department','Headcount','Total allowance','Total used','Utilization %','Avg days per person'],
+      ...Object.entries(deptMap).map(([name,v])=>{ const util=v.totalAllow?Math.round(v.totalUsed/v.totalAllow*100):0; const avg=v.headcount?Math.round(v.totalUsed/v.headcount*10)/10:0; return [name,v.headcount,v.totalAllow,v.totalUsed,util,avg]; })];
+    download(`${co}-departments-${y}.csv`,rows);
+  } else if(kind==='absences'){
+    const reqs=requestsForScope(me).filter(r=>inScopePeriod(r)&&(r.status==='approved'||r.status==='pending')).sort((a,b)=>b.from.localeCompare(a.from));
+    const rows=[['Person','Department','Leave type','From','To','Days','Duration','Status','Reason'],
+      ...reqs.map(r=>{ const e=empById(r.employeeId); const tp=typeById(r.typeId);
+        return [e?e.name:'',e?e.department||'':'',tp.name,r.from,r.to,r.days,r.durationType==='half'?'half-days':(r.durationType==='hours'?r.hoursPerDay+'h/day':'full'),r.status,r.reason||'']; })];
+    download(`${co}-absences-${y}.csv`,rows);
+  }
+}
+function renderReports(){
+  const me=currentUser();
+  const navChips=REPORT_DEFS.map(r=>`<button class="rchip ${ui.report===r.id?'on':''}" data-report="${r.id}">${r.icon}<span>${r.label}</span></button>`).join('');
+  const scopeLabel=me.role==='manager'?`Your team · ${scopeEmployees(me).length} ${scopeEmployees(me).length===1?'report':'reports'}`:'All employees';
+  const scopeBanner=me.role==='manager'?`<div class="scope-banner"><b>Scope:</b> Your direct reports only. Ask HR for a company-wide export.</div>`:'';
+  const content=(()=>{ switch(ui.report){ case 'balances': return renderBalancesReport(me); case 'trends': return renderTrendsReport(me); case 'departments': return renderDepartmentsReport(me); case 'absences': return renderAbsencesReport(me); case 'overview': default: return renderOverviewReport(me); } })();
+  $('#view-reports').innerHTML=`
+    <div class="panel reveal">
+      <div class="panel-head" style="flex-wrap:wrap"><h2>Leave reports</h2>
+        <div class="report-controls">
+          <select class="report-scope" id="rpt-scope">
+            <option value="fy" ${ui.reportScope==='fy'?'selected':''}>Fiscal year ${state.settings.year}</option>
+            <option value="all" ${ui.reportScope==='all'?'selected':''}>All time</option>
+          </select>
+        </div></div>
+      <div class="report-nav">${navChips}<span style="margin-left:8px;font-family:var(--mono);font-size:11px;color:var(--text-soft)">${scopeLabel}</span></div>
+      ${scopeBanner}
+      <div class="panel-body" id="rpt-content">${content}</div>
+    </div>`;
+  requestAnimationFrame(()=>{ $$('#rpt-content .chart-bar i').forEach(i=>i.style.width=(i.dataset.w||0)+'%'); $$('#rpt-content .vbar-seg').forEach(i=>i.style.height=i.dataset.h||'0'); });
+}
+
+function openProfileModal(id){
+  const e=empById(id); if(!e)return;
+  const me=currentUser();
+  const isHR=me&&me.role==='hr';
+  const canReqFor=isHR||(me.role==='manager'&&e.managerId===me.id);
+  const mgr=e.managerId?empById(e.managerId):null;
+  const deleg=e.delegateManagerId?empById(e.delegateManagerId):null;
+  const t=today();
+  const onNow=state.requests.some(r=>r.employeeId===e.id&&r.status==='approved'&&r.from<=t&&r.to>=t);
+  const reqs=state.requests.filter(r=>r.employeeId===e.id);
+  const daysUsed=reqs.filter(r=>r.status==='approved'&&inYear(r)).reduce((s,r)=>s+r.days,0);
+  const daysPending=reqs.filter(r=>r.status==='pending'&&inYear(r)).reduce((s,r)=>s+r.days,0);
+  const upcoming=reqs.filter(r=>r.from>t&&r.status!=='rejected').sort((a,b)=>a.from.localeCompare(b.from));
+  const next=upcoming.find(r=>r.status==='approved')||upcoming[0];
+  const delegActive=mgr&&deleg&&isOnLeaveToday(mgr.id);
+  openModal(`
+    <div class="phead">
+      <span class="av av-lg" style="background:${hashColor(e.name)}">${esc(initials(e.name))}</span>
+      <div style="flex:1;min-width:0">
+        <h3 style="margin-bottom:0">${esc(e.name)}</h3>
+        <div class="psub">${esc(e.roleTitle||'—')} · ${esc(e.department||'No department')}</div>
+        ${(e.username||e.email)?`<div class="pmail">${e.username?'@'+esc(e.username)+' · ':''}${esc(e.email||'no email')}</div>`:''}
+        <div class="chiprow">
+          ${rolePill(e.role)}
+          <span class="chip" title="Sex">${sexLabel(e.sex)}</span>
+          <span class="chip">Joined ${e.joined?fmt(e.joined,{year:'numeric',month:'short',day:'numeric'}):'—'}</span>
+          ${mgr?`<span class="chip">Reports to ${esc(mgr.name)}</span>`:''}
+          ${deleg?`<span class="chip ${delegActive?'deleg':''}">Delegate: ${esc(deleg.name)}${delegActive?' (active)':''}</span>`:''}
+          ${e.status==='left'?'<span class="chip">Left company</span>':''}
+        </div>
+      </div>
+      ${onNow?'<span class="badge approved"><i></i>On leave now</span>':''}
+    </div>
+    <div class="pstats">
+      <div><span class="klabel">Approved · FY ${state.settings.year}</span><b>${fmtNum(daysUsed)}d</b></div>
+      <div><span class="klabel">Pending</span><b>${fmtNum(daysPending)}d</b></div>
+      <div><span class="klabel">Next leave</span><b>${next?fmt(next.from):'—'}</b></div>
+    </div>
+    <span class="klabel">Balances · FY ${state.settings.year}</span>
+    <div class="pcards" style="margin-top:8px">${balanceCardsHTML(e)}</div>
+    ${historySectionsHTML(e)}
+    <div class="mactions" style="justify-content:space-between">
+      <div style="display:flex;gap:10px">
+        ${canReqFor?`<button class="btn btn-primary btn-sm" id="pf-newreq">+ New request</button>`:''}
+        ${isHR?`<button class="btn btn-sm" id="pf-edit">Edit profile</button>`:''}
+      </div>
+      <button class="btn btn-sm" id="pf-close">Close</button>
+    </div>`,true,()=>openProfileModal(id));
+  animateModalBars();
+  $('#pf-close').onclick=closeModal;
+  if(isHR)$('#pf-edit').onclick=()=>openEmpModal(e.id);
+  if(canReqFor)$('#pf-newreq').onclick=()=>openRequestModal({empId:e.id});
+}
+
+function openRequestModal(opts={}){
+  const me=currentUser();
+  if(!state.employees.length){toast('Add a person in the Team tab first.','err');return}
+  let pool;
+  if(me.role==='hr')pool=state.employees.filter(e=>e.status!=='left');
+  else if(me.role==='manager')pool=[me,...state.employees.filter(e=>e.managerId===me.id&&e.status!=='left')];
+  else pool=[me];
+  const lock=!!opts.lock||pool.length<2;
+  const empOpts=pool.map(e=>`<option value="${e.id}">${esc(e.name)} — ${esc(e.department||'')}</option>`).join('');
+  openModal(`<h3>New leave request</h3><p class="msub">Days skip weekends and public holidays. Sex-restricted types are only offered to eligible employees. You can attach supporting documents (≤2 MB).</p>
+    <form id="rqForm">
+      <div class="field"><label>Employee</label><select id="rq-emp" ${lock?'disabled':''}>${empOpts}</select>
+        ${lock?'<div class="field-note">Locked to your own requests'+(me.role==='manager'?' — log requests for your reports from their profile.':'')+'</div>':''}</div>
+      <div class="field"><label>Leave type</label><select id="rq-type"></select><div class="field-note" id="type-note"></div></div>
+      <div class="mrow">
+        <div class="field"><label>First day</label><input type="date" id="rq-from" value="${today()}" required></div>
+        <div class="field"><label>Last day</label><input type="date" id="rq-to" value="${today()}" required></div>
+      </div>
+      <div class="mrow">
+        <div class="field"><label>Duration</label>
+          <select id="rq-dur">
+            <option value="full" selected>Full days</option>
+            <option value="half">Half days (0.5 each)</option>
+            <option value="hours">Custom hours per day</option>
+          </select></div>
+        <div class="field" id="rq-hours-wrap" style="display:none"><label>Hours / day</label>
+          <input type="number" id="rq-hours" min="0.5" max="8" step="0.5" value="4"></div>
+      </div>
+      <div class="field"><label>Reason <span style="text-transform:none;letter-spacing:0">(optional)</span></label><input id="rq-reason" maxlength="140" placeholder="Holiday, appointment, recovery…"></div>
+      <div class="field"><label>Attachment <span style="text-transform:none;letter-spacing:0">(optional, ≤2 MB — e.g. doctor\u2019s note)</span></label><input type="file" id="rq-file"></div>
+      <div class="prev-box"><div class="prev-grid">
+        <div><span class="klabel">Working time</span><b id="pv-days">—</b></div>
+        <div><span class="klabel">Balance after approval</span><b id="pv-bal">—</b></div></div>
+        <div id="pv-warn"></div></div>
+      <div class="mactions"><button type="button" class="btn" id="rq-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="rq-submit">Submit request</button></div>
+    </form>`,false,()=>openRequestModal(opts));
+  $('#rq-cancel').onclick=closeModal;
+  if(opts.empId&&pool.some(e=>e.id===opts.empId))$('#rq-emp').value=opts.empId;
+
+  function refreshTypeOptions(){
+    const emp=empById($('#rq-emp').value); if(!emp)return;
+    const sel=$('#rq-type'), prev=sel.value;
+    sel.innerHTML=state.settings.leaveTypes.map(t=>{
+      const ok=isEligible(emp,t);
+      const why=!ok?(t.sexRestriction&&!emp.sex?' — set sex on profile':` — ${sexWord(t.sexRestriction)} employees only`):'';
+      return `<option value="${t.id}" ${ok?'':'disabled'}>${esc(t.name)}${why}</option>`;
+    }).join('');
+    const stillOk=state.settings.leaveTypes.some(t=>t.id===prev&&isEligible(emp,t));
+    const firstOk=state.settings.leaveTypes.find(t=>isEligible(emp,t));
+    sel.value=stillOk?prev:(firstOk?firstOk.id:'');
+    const st=typeById(sel.value);
+    $('#type-note').textContent=st.sexRestriction?`${st.name} is restricted to ${sexWord(st.sexRestriction)} employees.`
+      :(emp.sex?'':'Tip: this person\u2019s sex is not set — restricted types stay locked until it is.');
+  }
+  function syncHoursWrap(){ $('#rq-hours-wrap').style.display=$('#rq-dur').value==='hours'?'':'none'; }
+  const upd=()=>{
+    syncHoursWrap();
+    const f=$('#rq-from').value,tp=typeById($('#rq-type').value),emp=empById($('#rq-emp').value);
+    if($('#rq-to').value&&f&&$('#rq-to').value<f)$('#rq-to').value=f;
+    const durationType=$('#rq-dur').value;
+    const hoursPerDay=parseFloat($('#rq-hours').value)||8;
+    const days=computeDays(f,$('#rq-to').value||f,tp,durationType,hoursPerDay);
+    $('#pv-days').textContent=fmtDays(days)+(durationType==='hours'?` (${fmtNum(hoursPerDay)}h/day)`:(durationType==='half'?' (half-days)':''));
+    let ok=days>=0.5&&emp&&isEligible(emp,tp);
+    if(emp){
+      const allow=effectiveAllowance(emp,tp,state.settings.year),used=usedDays(emp.id,tp.id),after=allow-used-days;
+      const b=$('#pv-bal'); b.textContent=`${fmtNum(after)} of ${fmtNum(allow)}`; b.classList.toggle('neg',after<0);
+      const probe={id:'__probe',employeeId:emp.id,from:f,to:$('#rq-to').value};
+      const clashes=overlapsOf(probe);
+      $('#pv-warn').innerHTML=(after<0?`<div class="warn-strip">⚠ Exceeds remaining ${esc(tp.name)} allowance by ${fmtNum(Math.abs(after))} day(s) — it can still be submitted.</div>`:'')
+        +(clashes.length?`<div class="warn-strip">⚠ Overlaps existing: ${clashes.map(c=>`${esc(rangeLabel(c.from,c.to))} (${typeById(c.typeId).name})`).join(', ')}</div>`:'');
+    }
+    $('#rq-submit').disabled=!ok; $('#rq-submit').style.opacity=ok?1:.45;
+  };
+  $('#rq-emp').addEventListener('change',()=>{refreshTypeOptions();upd()});
+  ['rq-type','rq-from','rq-to','rq-dur','rq-hours'].forEach(id=>$('#'+id).addEventListener('change',upd));
+  refreshTypeOptions(); upd();
+
+  $('#rqForm').addEventListener('submit',e=>{
+    e.preventDefault();
+    const f=$('#rq-from').value,to=$('#rq-to').value,tp=typeById($('#rq-type').value),emp=empById($('#rq-emp').value);
+    if(!pool.some(x=>x.id===emp.id)){toast('You can\u2019t request on behalf of this person.','err');return}
+    if(!isEligible(emp,tp)){toast(`${esc(tp.name)} isn\u2019t available for this employee.`,'err');return}
+    const durationType=$('#rq-dur').value;
+    const hoursPerDay=durationType==='hours'?(parseFloat($('#rq-hours').value)||8):8;
+    const days=computeDays(f,to,tp,durationType,hoursPerDay);
+    if(days<0.5){toast('That range contains no working time.','err');return}
+    const reason=$('#rq-reason').value.trim();
+    const file=$('#rq-file').files[0];
+    const push=(atts)=>{
+      const req={id:uid(),employeeId:emp.id,typeId:tp.id,from:f,to:to,days,durationType,hoursPerDay,reason,status:'pending',createdAt:today(),decidedAt:null,note:'',attachments:atts||[]};
+      state.requests.push(req);
+      logAudit('submit_request',emp.id,null,{typeId:tp.id,from:f,to:to,days,durationType});
+      save(); closeModal(); renderAll();
+      toast(`Request submitted — ${fmtDays(days)}, pending approval.`,'ok');
+    };
+    if(file){
+      if(file.size>2*1024*1024){toast('Attachment exceeds the 2 MB limit.','err');return}
+      const rd=new FileReader();
+      rd.onload=()=>push([{name:file.name,type:file.type,size:file.size,data:rd.result}]);
+      rd.onerror=()=>toast('Could not read the file.','err');
+      rd.readAsDataURL(file);
+    } else push([]);
+  });
+}
+
+function decideModal(id,action){
+  const me=currentUser();
+  const r=state.requests.find(x=>x.id===id); if(!r)return;
+  if(!canApprove(me,r)){toast('You don\u2019t have permission to decide this request.','err');return}
+  const e=empById(r.employeeId),tp=typeById(r.typeId);
+  const allow=e?effectiveAllowance(e,tp,state.settings.year):0, used=e?usedDays(e.id,r.typeId):0, after=allow-used-r.days;
+  const approve=action==='approve', mm=mismatch(e,tp);
+  const deleg=viaDelegation(me,r)?'<span class="chip deleg" style="margin-left:6px">delegated approval</span>':'';
+  openModal(`<h3>${approve?'Approve':'Reject'} this request?</h3>
+    <p class="msub">${e?esc(e.name):'—'}${e&&e.sex?` (${sexLabel(e.sex)})`:''} · ${esc(tp.name)} · ${rangeLabel(r.from,r.to)} · ${fmtDays(r.days)}${deleg}</p>
+    ${approve?`<div class="prev-box"><div class="prev-grid"><div><span class="klabel">Balance after</span>
+      <b class="${after<0?'neg':''}">${fmtNum(after)} of ${fmtNum(allow)}</b></div></div>
+      ${mm?`<div class="warn-strip">⚠ ${esc(tp.name)} is restricted to ${sexWord(tp.sexRestriction)} employees — this profile says ${e.sex?sexLabel(e.sex).toLowerCase():'sex not set'}.</div>`
+        :(after<0?`<div class="warn-strip">⚠ This exceeds the remaining allowance by ${fmtNum(Math.abs(after))} day(s).</div>`:`<div class="ok-strip">✓ Within allowance.</div>`)}</div>`:''}
+    <div class="field" style="margin-top:14px"><label>Note ${approve?'(optional)':''}</label><textarea id="dc-note" rows="2" placeholder="${approve?'e.g. Enjoy the break!':'Give a reason…'}"></textarea></div>
+    <div class="mactions"><button class="btn" id="dc-cancel">Cancel</button>
+      <button class="btn ${approve?'btn-ink':'btn-reject-solid'}" id="dc-ok">${approve?'Approve':'Reject'}</button></div>`,
+    false,()=>decideModal(id,action));
+  $('#dc-cancel').onclick=closeModal;
+  $('#dc-ok').onclick=()=>{
+    const before={status:r.status};
+    r.status=approve?'approved':'rejected';
+    r.decidedAt=today(); r.note=$('#dc-note').value.trim();
+    logAudit(approve?'approve_request':'reject_request',r.employeeId,before,{status:r.status,requestId:r.id},`${typeById(r.typeId).name} ${rangeLabel(r.from,r.to)}`);
+    save(); closeModal(); renderAll();
+    toast(`${approve?'Approved':'Rejected'} — ${e?esc(e.name):''} · ${esc(tp.name)}`,approve?'ok':'');
+  };
+}
+
+function openEmpModal(id){
+  const me=currentUser();
+  if(me.role!=='hr'){toast('Only HR can edit profiles.','err');return}
+  const e=id?empById(id):null;
+  const ovr=state.settings.leaveTypes.map(tp=>{
+    const val=e&&e.overrides&&e.overrides[tp.id]!=null?e.overrides[tp.id]:'';
+    return `<div class="field" style="margin-bottom:8px"><label>${esc(tp.name)} <span style="text-transform:none;letter-spacing:0">(blank = ${tp.allowance})</span></label>
+      <input type="number" min="0" data-ovr="${tp.id}" value="${val}" placeholder="${tp.allowance}"></div>`;
+  }).join('');
+  const mgrs=state.employees.filter(x=>['manager','hr'].includes(x.role)&&x.id!==(e?e.id:''));
+  openModal(`<h3>${e?'Edit':'Add'} person</h3><p class="msub">${e?'Adjust profile, role, reporting line, delegation and sign-in.':'Add a teammate — set a username &amp; password to give them sign-in access.'}</p>
+    <form id="empForm">
+      <div class="mrow">
+        <div class="field" style="flex:2"><label>Full name *</label><input id="em-name" required value="${e?esc(e.name):''}"></div>
+        <div class="field"><label>Status</label><select id="em-status">
+          <option value="active" ${!e||e.status==='active'?'selected':''}>Active</option>
+          <option value="left" ${e&&e.status==='left'?'selected':''}>Left company</option></select></div>
+      </div>
+      <div class="mrow">
+        <div class="field"><label>Job title</label><input id="em-role" value="${e?esc(e.roleTitle||''):''}"></div>
+        <div class="field"><label>Department</label><input id="em-dept" value="${e?esc(e.department||''):''}"></div>
+        <div class="field"><label>Sex</label><select id="em-sex">
+          <option value="" ${!e||!e.sex?'selected':''}>Not specified</option>
+          <option value="female" ${e&&e.sex==='female'?'selected':''}>Female</option>
+          <option value="male" ${e&&e.sex==='male'?'selected':''}>Male</option></select></div>
+      </div>
+      <div class="mrow">
+        <div class="field"><label>Email</label><input id="em-email" type="email" value="${e?esc(e.email||''):''}"></div>
+        <div class="field"><label>Joined</label><input id="em-joined" type="date" value="${e?(e.joined||''):''}"></div>
+      </div>
+      <span class="klabel" style="display:block;margin:6px 0 10px">Role, reporting &amp; delegation</span>
+      <div class="mrow">
+        <div class="field"><label>System role</label><select id="em-sysrole">
+          <option value="employee" ${!e||e.role==='employee'?'selected':''}>Employee — requests leave</option>
+          <option value="manager" ${e&&e.role==='manager'?'selected':''}>Manager — approves their reports</option>
+          <option value="hr" ${e&&e.role==='hr'?'selected':''}>HR — full administration</option></select></div>
+        <div class="field"><label>Reports to (manager)</label><select id="em-mgr"><option value="">— none (HR decides) —</option>
+          ${mgrs.map(m=>`<option value="${m.id}" ${e&&e.managerId===m.id?'selected':''}>${esc(m.name)} (${roleLabel(m.role)})</option>`).join('')}</select></div>
+        <div class="field"><label>Delegate approver <span style="text-transform:none;letter-spacing:0">(when manager away)</span></label><select id="em-delegate"><option value="">— none —</option>
+          ${mgrs.map(m=>`<option value="${m.id}" ${e&&e.delegateManagerId===m.id?'selected':''}>${esc(m.name)} (${roleLabel(m.role)})</option>`).join('')}</select></div>
+      </div>
+      <span class="klabel" style="display:block;margin:6px 0 10px">Sign-in</span>
+      <div class="mrow">
+        <div class="field"><label>Username</label><input id="em-user" autocomplete="off" placeholder="leave blank for no sign-in" value="${e?esc(e.username||''):''}"></div>
+        <div class="field"><label>${e?'New password (blank = keep)':'Password'}</label><input id="em-pw" type="password" autocomplete="new-password" placeholder="${e?'••••••':'required if username set'}"></div>
+      </div>
+      <span class="klabel" style="display:block;margin:6px 0 10px">Allowance overrides (days / year)</span>
+      <div class="ovr-grid" style="margin-top:2px">${ovr}</div>
+      <div class="mactions"><button type="button" class="btn" id="em-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary">${e?'Save changes':'Add person'}</button></div>
+    </form>`,false,()=>openEmpModal(id));
+  $('#em-cancel').onclick=closeModal;
+  $('#empForm').addEventListener('submit',ev=>{
+    ev.preventDefault();
+    const name=$('#em-name').value.trim(); if(!name)return;
+    const username=$('#em-user').value.trim().toLowerCase();
+    const sysrole=$('#em-sysrole').value, managerId=$('#em-mgr').value||null, delegateManagerId=$('#em-delegate').value||null, pw=$('#em-pw').value;
+    if(username&&state.employees.some(x=>x.username===username&&x.id!==(e?e.id:''))){toast('That username is already taken.','err');return}
+    if(username&&!pw&&(!e||!e.pwHash)){toast('Set an initial password for this account.','err');return}
+    if(managerId===delegateManagerId&&managerId){toast('Delegate must be different from the primary manager.','err');return}
+    if(e&&e.id===me.id&&(sysrole!=='hr'||!username)&&!state.employees.some(x=>x.role==='hr'&&x.id!==e.id)){
+      toast('You\u2019re the only HR admin — promote someone else before changing your own access.','err');return}
+    const overrides={};
+    $$('[data-ovr]').forEach(inp=>{if(inp.value!=='')overrides[inp.dataset.ovr]=Math.max(0,Number(inp.value)||0)});
+    const data={name,sex:$('#em-sex').value,roleTitle:$('#em-role').value.trim(),department:$('#em-dept').value.trim(),
+      email:$('#em-email').value.trim(),joined:$('#em-joined').value,status:$('#em-status').value,
+      role:sysrole,managerId,delegateManagerId,username,overrides};
+    const before=e?clone({name:e.name,role:e.role,managerId:e.managerId,delegateManagerId:e.delegateManagerId,department:e.department,username:e.username,status:e.status}):null;
+    if(e){
+      Object.assign(e,data);
+      if(!username){e.pwHash='';e.pwSalt=''} else if(pw)setPassword(e,pw);
+      logAudit('edit_employee',e.id,before,{name:data.name,role:data.role,managerId:data.managerId,delegateManagerId:data.delegateManagerId,username:data.username});
+    }else{
+      const ne={id:uid(),pwHash:'',pwSalt:'',...data};
+      if(username)setPassword(ne,pw);
+      state.employees.push(ne);
+      logAudit('add_employee',ne.id,null,{name:ne.name,role:ne.role,department:ne.department});
+    }
+    save(); closeModal(); renderAll(); toast(`${e?'Saved':'Added'} — ${esc(name)}`,'ok');
+  });
+}
+
+document.addEventListener('click',e=>{
+  const th=e.target.closest('[data-settheme]'); if(th){applyTheme(th.dataset.settheme);return}
+  if(e.target.closest('[data-logout]')){clearSession();renderRoot();toast('Signed out.');return}
+  if(e.target.closest('[data-about]')){openAboutModal();return}
+  if(e.target.closest('[data-resetpw]')){resetDemoPasswords();return}
+  const tab=e.target.closest('#nav [data-tab]'); if(tab){setTab(tab.dataset.tab);return}
+  if(e.target.closest('#btnNewRequest')){const me=currentUser();if(!me)return;
+    me.role==='hr'?openRequestModal():openRequestModal({empId:me.id,lock:true});return}
+  if(e.target.closest('#btnExport')){exportJSON();return}
+  if(e.target.closest('#btnImport')){$('#fileImport').click();return}
+  if(e.target.id==='overlay'){closeModal();return}
+  if(e.target.closest('[data-myreq]')){const me=currentUser();if(me)openRequestModal({empId:me.id,lock:true});return}
+
+  const att=e.target.closest('[data-att]'); if(att){openAttachmentsModal(att.dataset.att);return}
+
+  const tl=e.target.closest('[data-tile]'); if(tl){tileAction(tl.dataset.tile);return}
+  const pr=e.target.closest('[data-profile]');
+  if(pr&&!e.target.closest('.icon-btn')){openProfileModal(pr.dataset.profile);return}
+
+  const ap=e.target.closest('[data-approve]'); if(ap){decideModal(ap.dataset.approve,'approve');return}
+  const rj=e.target.closest('[data-reject]'); if(rj){decideModal(rj.dataset.reject,'reject');return}
+  const ro=e.target.closest('[data-reopen]');
+  if(ro){const me=currentUser();if(me.role!=='hr'){toast('Only HR can reopen decisions.','err');return}
+    const r=state.requests.find(x=>x.id===ro.dataset.reopen);
+    if(r){r.status='pending';r.decidedAt=null;r.note='';logAudit('reopen_request',r.employeeId,null,{requestId:r.id});save();renderAll();toast('Reopened as pending.')}return}
+  const cr=e.target.closest('[data-cancelreq]');
+  if(cr){const me=currentUser();const r=state.requests.find(x=>x.id===cr.dataset.cancelreq);
+    if(r&&me&&(me.role==='hr'||(r.employeeId===me.id&&r.status==='pending'))){
+      confirmModal('Cancel this request?','The pending request will be removed.','Cancel request',()=>{
+        logAudit('cancel_request',r.employeeId,{requestId:r.id},null);
+        state.requests=state.requests.filter(x=>x.id!==r.id);save();renderAll();toast('Request cancelled.')});}
+    return}
+  const dr=e.target.closest('[data-delreq]');
+  if(dr){const me=currentUser();if(me.role!=='hr'){toast('Only HR can delete requests.','err');return}
+    const r=state.requests.find(x=>x.id===dr.dataset.delreq);
+    confirmModal('Delete this request?','This removes the request permanently. The days return to the employee\u2019s balance.','Delete',()=>{
+      logAudit('delete_request',r.employeeId,{requestId:r.id,typeId:r.typeId,from:r.from,to:r.to,days:r.days},null);
+      state.requests=state.requests.filter(x=>x.id!==r.id);save();renderAll();toast('Request deleted.')});return}
+
+  const ne=e.target.closest('[data-newemp]'); if(ne){openEmpModal();return}
+  const ee=e.target.closest('[data-editemp]'); if(ee){openEmpModal(ee.dataset.editemp);return}
+  const de=e.target.closest('[data-delemp]');
+  if(de){const me=currentUser();const emp=empById(de.dataset.delemp);
+    if(emp.id===me.id){toast('You can\u2019t remove your own account.','err');return}
+    if(emp.role==='hr'&&!state.employees.some(x=>x.role==='hr'&&x.id!==emp.id)){toast('That\u2019s the only HR admin — promote someone else first.','err');return}
+    const n=state.requests.filter(r=>r.employeeId===emp.id).length;
+    confirmModal(`Remove ${emp.name}?`,`${n} request${n===1?'':'s'} will also be deleted. Their sign-in account stops working immediately.`,'Remove',()=>{
+      logAudit('delete_employee',emp.id,{name:emp.name,role:emp.role,department:emp.department},null);
+      state.employees=state.employees.filter(x=>x.id!==emp.id);
+      state.requests=state.requests.filter(r=>r.employeeId!==emp.id);
+      save();renderAll();toast(`${esc(emp.name)} removed.`)});return}
+
+  const fc=e.target.closest('[data-rfilter]'); if(fc){ui.filter=fc.dataset.rfilter;renderRequests();revealActive();return}
+  const cn=e.target.closest('[data-cal]');
+  if(cn){const v=+cn.dataset.cal;
+    if(v===0){ui.month=new Date();ui.month.setDate(1)}
+    else ui.month=new Date(ui.month.getFullYear(),ui.month.getMonth()+v,1);
+    renderCalendar();revealActive();return}
+
+  const addhol=e.target.closest('[data-addhol]');
+  if(addhol){const d=$('#hol-date').value, n=$('#hol-name').value.trim();
+    if(!d){toast('Pick a date for the holiday.','err');return}
+    if(!n){toast('Give the holiday a name.','err');return}
+    if(state.settings.holidays.some(h=>h.date===d)){toast('That date is already a holiday.','err');return}
+    state.settings.holidays.push({id:uid(),date:d,name:n});
+    state.settings.holidays.sort((a,b)=>a.date.localeCompare(b.date));
+    logAudit('add_holiday',null,null,{date:d,name:n});
+    save();renderSettings();revealActive();toast('Holiday added — day calculations updated.','ok');return}
+  const delhol=e.target.closest('[data-delhol]');
+  if(delhol){const h=state.settings.holidays.find(x=>x.id===delhol.dataset.delhol);
+    state.settings.holidays=state.settings.holidays.filter(x=>x.id!==delhol.dataset.delhol);
+    logAudit('delete_holiday',null,h,null);
+    save();renderSettings();revealActive();toast('Holiday removed.');return}
+
+  const dot=e.target.closest('[data-cycledot]');
+  if(dot){const row=dot.closest('[data-type]'),tp=state.settings.leaveTypes.find(t=>t.id===row.dataset.type);
+    if(tp){tp.color=PALETTE[(Math.max(0,PALETTE.indexOf(tp.color))+1)%PALETTE.length];dot.style.background=tp.color;logAudit('edit_leavetype',tp.id,null,{color:tp.color});save()}return}
+  const dt=e.target.closest('[data-deltype]');
+  if(dt){const tp=typeById(dt.dataset.deltype); const used=state.requests.filter(r=>r.typeId===tp.id).length;
+    const go=()=>{state.settings.leaveTypes=state.settings.leaveTypes.filter(t=>t.id!==tp.id);logAudit('delete_leavetype',null,{name:tp.name},null);save();renderSettings();revealActive();toast('Leave type removed.')};
+    used?confirmModal(`Remove “${tp.name}”?`,`${used} request${used===1?'':'s'} use this type — they\u2019ll show as <i>(removed type)</i>.`,'Remove anyway',go):go();
+    return}
+  const at=e.target.closest('[data-addtype]');
+  if(at){const nt={id:uid(),name:'New leave',color:PALETTE[state.settings.leaveTypes.length%PALETTE.length],allowance:5,countsWeekends:false,sexRestriction:null,accrualRate:'annual',carryoverCap:0,proRateFromJoinDate:false};
+    state.settings.leaveTypes.push(nt);logAudit('add_leavetype',null,null,{name:nt.name});
+    save();renderSettings();revealActive();return}
+
+  const rchip=e.target.closest('[data-report]');
+  if(rchip){ui.report=rchip.dataset.report;renderReports();revealActive();return}
+  const rcsv=e.target.closest('[data-rpt-csv]');
+  if(rcsv){const me=currentUser();if(me)exportReportCSV(rcsv.dataset.rptCsv,me);return}
+  const rprint=e.target.closest('[data-rpt-print]');
+  if(rprint){exportPDF();return}
+
+  const act=e.target.closest('[data-act]');
+  if(act){const a=act.dataset.act;
+    if(a==='export')exportJSON();
+    if(a==='import')$('#fileImport').click();
+    if(a==='resetpw')resetDemoPasswords();
+    if(a==='sample')confirmModal('Load sample workspace?','Replaces current data with a demo team and requests, and signs you out.','Load sample',()=>{state=seedSample();save();clearSession();renderRoot();toast('Sample workspace loaded.','ok')});
+    if(a==='fresh')confirmModal('Start fresh?','Clears all people, requests, accounts, holidays and settings. Export a backup first if you need one.','Clear everything',()=>{
+      state={settings:defaultSettings(),employees:[],requests:[],audit:[]};save();clearSession();renderRoot();toast('Workspace cleared.')});
+  }
+});
+
+document.addEventListener('change',e=>{
+  if(e.target.id==='set-company'){const before=state.settings.companyName;state.settings.companyName=e.target.value.trim()||'Untitled';logAudit('edit_settings',null,{companyName:before},{companyName:state.settings.companyName});save();renderTopbar();return}
+  if(e.target.id==='set-year'){const before=state.settings.year;state.settings.year=Math.max(2000,Math.min(2100,Number(e.target.value)||new Date().getFullYear()));logAudit('edit_settings',null,{year:before},{year:state.settings.year});save();renderTopbar();toast('Leave year updated.');return}
+  if(e.target.id==='set-wsm'){state.settings.weekStartsMonday=e.target.checked;logAudit('edit_settings',null,null,{weekStartsMonday:e.target.checked});save();return}
+  if(e.target.id==='rpt-scope'){ui.reportScope=e.target.value;renderReports();revealActive();return}
+  if(e.target.id==='audit-filter'){ui.auditFilter=e.target.value;renderAuditBody();return}
+  if(e.target.id==='audit-search'){ui.auditSearch=e.target.value;renderAuditBody();return}
+  const row=e.target.closest('[data-type]');
+  if(row){const tp=state.settings.leaveTypes.find(t=>t.id===row.dataset.type); if(!tp)return;
+    if(e.target.classList.contains('tname')){tp.name=e.target.value.trim()||'Untitled';logAudit('edit_leavetype',tp.id,null,{name:tp.name});}
+    if(e.target.classList.contains('tnum')){tp.allowance=Math.max(0,Number(e.target.value)||0);logAudit('edit_leavetype',tp.id,null,{allowance:tp.allowance});}
+    if(e.target.classList.contains('twdc')){tp.countsWeekends=e.target.checked;logAudit('edit_leavetype',tp.id,null,{countsWeekends:tp.countsWeekends});}
+    if(e.target.classList.contains('tres')&&!e.target.classList.contains('taccr')){tp.sexRestriction=e.target.value||null;logAudit('edit_leavetype',tp.id,null,{sexRestriction:tp.sexRestriction});}
+    if(e.target.classList.contains('taccr')){tp.accrualRate=e.target.value;logAudit('edit_leavetype',tp.id,null,{accrualRate:tp.accrualRate});}
+    if(e.target.classList.contains('tcarry')){tp.carryoverCap=Math.max(0,Number(e.target.value)||0);logAudit('edit_leavetype',tp.id,null,{carryoverCap:tp.carryoverCap});}
+    if(e.target.classList.contains('tpro')){tp.proRateFromJoinDate=e.target.checked;logAudit('edit_leavetype',tp.id,null,{proRateFromJoinDate:tp.proRateFromJoinDate});}
+    save();}
+});
+
+$('#fileImport').addEventListener('change',e=>{handleImportFile(e.target.files[0]);e.target.value=''});
+window.addEventListener('resize',moveIndicator);
+
+let dragDepth=0;
+window.addEventListener('dragenter',e=>{e.preventDefault();dragDepth++;$('#dropzone').classList.add('on')});
+window.addEventListener('dragover',e=>e.preventDefault());
+window.addEventListener('dragleave',e=>{e.preventDefault();if(--dragDepth<=0){dragDepth=0;$('#dropzone').classList.remove('on')}});
+window.addEventListener('drop',e=>{
+  e.preventDefault();dragDepth=0;$('#dropzone').classList.remove('on');
+  const me=currentUser();
+  if(!me||me.role!=='hr'){toast('Sign in as HR to import files.','err');return}
+  const f=e.dataTransfer.files[0];
+  if(f&&/\.ldesk$/i.test(f.name))handleImportFile(f); else toast('Please drop a .ldesk file.','err');
+});
+
+(function init(){
+  let raw=null;
+  try{raw=localStorage.getItem(LS_KEY)}catch(e){}
+  if(raw){state=normalize(JSON.parse(raw))}
+  else{state=seedSample();save();
+    setTimeout(()=>toast(`Sample workspace loaded — sign in with the demo accounts (password: ${DEMO_PASSWORD}).`,'ok',6000),400)}
+  renderRoot();
+})();
+</script>
+</body>
+</html>
